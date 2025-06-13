@@ -50,7 +50,7 @@ interface IApiRestApplicationModalContentProps {
 		selectedRESTSchema: string | null;
 		sourceItems: TItem[];
 	}) => void;
-	preselectedValueInput: string;
+	preselectedValueInput: string | number;
 	requiredRESTApplicationValidationError: boolean;
 	resolvedRESTSchemas: string[];
 	restApplications: string[];
@@ -123,7 +123,7 @@ function ApiRestApplication({
 		selectedItemLabel,
 		source,
 	}: {
-		preselectedValueInput: string;
+		preselectedValueInput: string | number;
 		selectedItemKey: string;
 		selectedItemLabel: string;
 		source: string | null;

@@ -908,7 +908,7 @@ public class CustomFDSSerializer
 		return JSONUtil.put(
 			"clientExtensionFilterURL", fdsFilterCET.getURL()
 		).put(
-			"entityFieldType", FDSEntityFieldTypes.STRING
+			"entityFieldType", properties.get("entityFieldType")
 		).put(
 			"id", fieldName
 		).put(
@@ -977,6 +977,10 @@ public class CustomFDSSerializer
 			Map<String, Object> properties, String sourceType)
 		throws Exception {
 
+		String entityFieldType = properties.get(
+			"entityFieldType"
+		).toString();
+
 		if (Objects.equals(
 				sourceType, FDSEntryItemImportPolicy.ITEM_PROXY.toString())) {
 
@@ -1000,8 +1004,8 @@ public class CustomFDSSerializer
 		).put(
 			"entityFieldType",
 			() -> {
-				if (Validator.isNotNull(properties.get("entityFieldType"))) {
-					return properties.get("entityFieldType");
+				if (Validator.isNotNull(entityFieldType)) {
+					return entityFieldType;
 				}
 
 				if (_isCollection(
@@ -1014,20 +1018,7 @@ public class CustomFDSSerializer
 				return FDSEntityFieldTypes.STRING;
 			}
 		).put(
-			"id",
-			() -> {
-				if (!Objects.equals(sourceType, "OBJECT_PICKLIST")) {
-					return fieldName;
-				}
-
-				int index = fieldName.lastIndexOf(StringPool.FORWARD_SLASH);
-
-				if (index <= 0) {
-					return fieldName;
-				}
-
-				return fieldName.substring(0, index);
-			}
+			"id", fieldName
 		).put(
 			"label",
 			MapUtil.getWithFallbackKey(properties, "label", "fieldName")
@@ -1092,7 +1083,17 @@ public class CustomFDSSerializer
 					listTypeEntry.getName(
 						PortalUtil.getLocale(httpServletRequest))
 				).put(
-					"value", listTypeEntry.getKey()
+					"value",
+					() -> {
+						if (Validator.isNotNull(entityFieldType) &&
+							StringUtil.equalsIgnoreCase(
+								entityFieldType, FDSEntityFieldTypes.INTEGER)) {
+
+							return Integer.valueOf(listTypeEntry.getKey());
+						}
+
+						return listTypeEntry.getKey();
+					}
 				))
 		).put(
 			"preloadedData",
@@ -1123,7 +1124,19 @@ public class CustomFDSSerializer
 								listTypeEntry.getName(
 									PortalUtil.getLocale(httpServletRequest))
 							).put(
-								"value", listTypeEntry.getKey()
+								"value",
+								() -> {
+									if (Validator.isNotNull(entityFieldType) &&
+										StringUtil.equalsIgnoreCase(
+											entityFieldType,
+											FDSEntityFieldTypes.INTEGER)) {
+
+										return Integer.valueOf(
+											listTypeEntry.getKey());
+									}
+
+									return listTypeEntry.getKey();
+								}
 							));
 					}
 				}
