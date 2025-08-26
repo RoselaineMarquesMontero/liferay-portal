@@ -6,6 +6,7 @@
 package com.liferay.headless.admin.site.internal.resource.v1_0;
 
 import com.liferay.headless.admin.site.dto.v1_0.DisplayPageTemplateFolder;
+import com.liferay.headless.admin.site.internal.odata.entity.v1_0.DisplayPageTemplateFolderEntityModel;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.DisplayPageTemplateFolderUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.GroupUtil;
 import com.liferay.headless.admin.site.resource.v1_0.DisplayPageTemplateFolderResource;
@@ -13,9 +14,11 @@ import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTy
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionService;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -25,12 +28,15 @@ import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.SearchUtil;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -80,21 +86,22 @@ public class DisplayPageTemplateFolderResourceImpl
 		long groupId = GroupUtil.getGroupId(
 			true, contextCompany.getCompanyId(), siteExternalReferenceCode);
 
-		return Page.of(
-			transform(
-				_layoutPageTemplateCollectionService.
-					getLayoutPageTemplateCollections(
-						groupId, search,
-						LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE,
-						pagination.getStartPosition(),
-						pagination.getEndPosition(), null),
-				layoutPageTemplateCollection -> _toDisplayPageTemplateFolder(
-					layoutPageTemplateCollection)),
-			pagination,
-			_layoutPageTemplateCollectionService.
-				getLayoutPageTemplateCollectionsCount(
-					groupId, search,
-					LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE));
+		return SearchUtil.search(
+			Collections.emptyMap(),
+			booleanQuery -> {
+			},
+			filter, LayoutPageTemplateCollection.class.getName(),
+			search, pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(Field.ENTRY_CLASS_PK),
+			searchContext -> {
+				searchContext.addVulcanAggregation(aggregation);
+				searchContext.setGroupIds(new long[] {groupId});
+				searchContext.setCompanyId(contextCompany.getCompanyId());
+				searchContext.setAttribute(Field.TYPE, String.valueOf(LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE));
+			},
+			sorts,
+			document -> _toDisplayPageTemplateFolder(
+				_layoutPageTemplateCollectionService.fetchLayoutPageTemplateCollection(Long.parseLong(document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -271,6 +278,13 @@ public class DisplayPageTemplateFolderResourceImpl
 		return _displayPageTemplateFolderDTOConverter.toDTO(
 			layoutPageTemplateCollection);
 	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
+	}
+
+	private static final EntityModel _entityModel = new DisplayPageTemplateFolderEntityModel();
 
 	@Reference(
 		target = "(component.name=com.liferay.headless.admin.site.internal.dto.v1_0.converter.DisplayPageTemplateFolderDTOConverter)"
