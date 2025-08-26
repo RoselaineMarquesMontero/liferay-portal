@@ -6,7 +6,6 @@
 package com.liferay.headless.admin.site.internal.dto.v1_0.converter;
 
 import com.liferay.headless.admin.site.dto.v1_0.DisplayPageTemplateFolder;
-import com.liferay.headless.admin.site.internal.dto.v1_0.util.PermissionUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionService;
 import com.liferay.portal.kernel.service.PermissionService;
@@ -14,6 +13,10 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
+import com.liferay.portal.vulcan.permission.Permission;
+import com.liferay.portal.vulcan.permission.PermissionUtil;
+
+import java.util.Collection;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -85,13 +88,27 @@ public class DisplayPageTemplateFolderDTOConverter
 				setPermissions(
 					() -> NestedFieldsSupplier.supply(
 						"permissions",
-						nestedFieldNames -> PermissionUtil.toPermissions(
-							layoutPageTemplateCollection.getCompanyId(),
-							layoutPageTemplateCollection.getGroupId(),
-							layoutPageTemplateCollection.
-								getLayoutPageTemplateCollectionId(),
-							LayoutPageTemplateCollection.class.getName(),
-							_permissionService, _resourceActionLocalService)));
+						nestedFieldNames -> {
+							String resourceName =
+								LayoutPageTemplateCollection.class.getName();
+
+							_permissionService.checkPermission(
+								layoutPageTemplateCollection.getGroupId(),
+								resourceName,
+								layoutPageTemplateCollection.
+									getLayoutPageTemplateCollectionId());
+
+							Collection<Permission> permissions =
+								PermissionUtil.getPermissions(
+									layoutPageTemplateCollection.getCompanyId(),
+									_resourceActionLocalService.
+										getResourceActions(resourceName),
+									layoutPageTemplateCollection.
+										getLayoutPageTemplateCollectionId(),
+									resourceName, null);
+
+							return permissions.toArray(new Permission[0]);
+						}));
 				setUuid(layoutPageTemplateCollection::getUuid);
 			}
 		};
