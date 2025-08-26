@@ -6,6 +6,7 @@
 package com.liferay.headless.admin.site.internal.resource.v1_0;
 
 import com.liferay.headless.admin.site.dto.v1_0.PageTemplateSet;
+import com.liferay.headless.admin.site.internal.odata.entity.v1_0.PageTemplateSetEntityModel;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.GroupUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.PageTemplateSetUtil;
 import com.liferay.headless.admin.site.resource.v1_0.PageTemplateSetResource;
@@ -13,16 +14,22 @@ import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTy
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionService;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import com.liferay.portal.vulcan.util.SearchUtil;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
+import jakarta.ws.rs.core.MultivaluedMap;
+
+import java.util.Collections;
 
 /**
  * @author Rubén Pulido
@@ -84,20 +91,25 @@ public class PageTemplateSetResourceImpl
 		long groupId = GroupUtil.getGroupId(
 			true, contextCompany.getCompanyId(), siteExternalReferenceCode);
 
-		return Page.of(
-			transform(
-				_layoutPageTemplateCollectionService.
-					getLayoutPageTemplateCollections(
-						groupId, search,
-						LayoutPageTemplateCollectionTypeConstants.BASIC,
-						pagination.getStartPosition(),
-						pagination.getEndPosition(), null),
-				this::_toPageTemplateSet),
-			pagination,
-			_layoutPageTemplateCollectionService.
-				getLayoutPageTemplateCollectionsCount(
-					groupId, search,
-					LayoutPageTemplateCollectionTypeConstants.BASIC));
+		return SearchUtil.search(
+			Collections.emptyMap(),
+			booleanQuery -> {
+			},
+			filter, LayoutPageTemplateCollection.class.getName(),
+			search, pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(
+				Field.ENTRY_CLASS_PK, "externalReferenceCode", Field.TYPE,
+				Field.COMPANY_ID, Field.GROUP_ID, Field.NAME, Field.DESCRIPTION),
+			searchContext -> {
+				searchContext.addVulcanAggregation(aggregation);
+				searchContext.setGroupIds(new long[] {groupId});
+				searchContext.setCompanyId(contextCompany.getCompanyId());
+				searchContext.setAttribute(Field.TYPE,
+					String.valueOf(LayoutPageTemplateCollectionTypeConstants.BASIC));
+			},
+			sorts,
+			document -> _toPageTemplateSet(
+				_layoutPageTemplateCollectionService.fetchLayoutPageTemplateCollection(Long.parseLong(document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -151,12 +163,19 @@ public class PageTemplateSetResourceImpl
 					pageTemplateSet.getDescription()));
 	}
 
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
+	}
+
 	private PageTemplateSet _toPageTemplateSet(
 			LayoutPageTemplateCollection layoutPageTemplateCollection)
 		throws Exception {
 
 		return _pageTemplateSetDTOConverter.toDTO(layoutPageTemplateCollection);
 	}
+
+	private static final EntityModel _entityModel = new PageTemplateSetEntityModel();
 
 	@Reference
 	private LayoutPageTemplateCollectionService
