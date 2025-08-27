@@ -52,7 +52,7 @@ public class LayoutClassedModelUsageConstraintResolverTest {
 	}
 
 	@Test
-	public void testConstraintResolver() throws Exception {
+	public void testResolveConflict() throws Exception {
 		String classExternalReferenceCode = RandomTestUtil.randomString();
 		long classNameId = RandomTestUtil.randomLong();
 		long classPK = RandomTestUtil.randomLong();
