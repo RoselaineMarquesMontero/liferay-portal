@@ -419,7 +419,8 @@ public class CSSCompressor {
 				if (endIndex <= 0) {
 					break;
 				}
-				else if ((endIndex > 0) && (css.charAt(endIndex - 1) != '\\')) {
+
+				if (css.charAt(endIndex - 1) != '\\') {
 					foundTerminator = true;
 
 					if (!Objects.equals(terminator, ")")) {
