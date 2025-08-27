@@ -121,10 +121,9 @@ public class ObjectEntryFolderResourceTest
 	public void testGetObjectEntryFolder() throws Exception {
 		super.testGetObjectEntryFolder();
 
-		_testGetObjectEntryFolderActionsWithSharingEnabled();
-
 		_testGetObjectEntryFolderActionsWithCompanySharingDisabled();
 		_testGetObjectEntryFolderActionsWithGroupSharingDisabled();
+		_testGetObjectEntryFolderActionsWithSharingEnabled();
 		_testGetObjectEntryFolderActionsWithSystemSharingDisabled();
 	}
 
