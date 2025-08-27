@@ -68,8 +68,6 @@ public class LiferayDispatchTargets extends DispatchTargets {
 		_requestURI = requestURI;
 		_servletName = servletName;
 		_servletPath = GetterUtil.getString(servletPath);
-
-		_specialOverrides = new ConcurrentHashMap<>();
 	}
 
 	public LiferayDispatchTargets(
@@ -376,7 +374,8 @@ public class LiferayDispatchTargets extends DispatchTargets {
 	private final String _requestURI;
 	private final String _servletName;
 	private final String _servletPath;
-	private final Map<String, Object> _specialOverrides;
+	private final Map<String, Object> _specialOverrides =
+		new ConcurrentHashMap<>();
 	private String _string;
 
 	private static class RequestAttributeSetter implements Closeable {
