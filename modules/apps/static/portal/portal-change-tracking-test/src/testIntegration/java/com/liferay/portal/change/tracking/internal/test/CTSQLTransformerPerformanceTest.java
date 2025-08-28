@@ -109,10 +109,10 @@ public class CTSQLTransformerPerformanceTest {
 
 	@Test
 	public void testUpdateAndDeletePerformance() throws Exception {
-		_assertPerformance("update_in.sql", 0, 20);
-		_assertPerformance("update_in.sql", 1, 20);
 		_assertPerformance("delete_in.sql", 0, 20);
 		_assertPerformance("delete_in.sql", 1, 20);
+		_assertPerformance("update_in.sql", 0, 20);
+		_assertPerformance("update_in.sql", 1, 20);
 	}
 
 	private void _assertPerformance(
