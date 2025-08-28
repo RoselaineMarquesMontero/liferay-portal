@@ -42,7 +42,6 @@ public class CTSQLTransformerPerformanceTest {
 		CTModelRegistry.registerCTModel(
 			new CTModelRegistration(
 				MainTable.class, "MainTable", "mainTableId"));
-
 		CTModelRegistry.registerCTModel(
 			new CTModelRegistration(
 				ReferenceTable.class, "ReferenceTable", "referenceTableId"));
@@ -57,74 +56,62 @@ public class CTSQLTransformerPerformanceTest {
 	@Test
 	public void testJoinCountPerformance() throws Exception {
 		_assertPerformance("join_count_in.sql", 0, 20);
-
 		_assertPerformance("join_count_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testJoinSelectPerformance() throws Exception {
 		_assertPerformance("join_select_in.sql", 0, 20);
-
 		_assertPerformance("join_select_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testLeftJoinPerformance() throws Exception {
 		_assertPerformance("left_join_in.sql", 0, 20);
-
 		_assertPerformance("left_join_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testSelfJoinPerformance() throws Exception {
 		_assertPerformance("self_join_in.sql", 0, 20);
-
 		_assertPerformance("self_join_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testSimpleCountPerformance() throws Exception {
 		_assertPerformance("simple_count_in.sql", 0, 20);
-
 		_assertPerformance("simple_count_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testSimpleSelectPerformance() throws Exception {
 		_assertPerformance("simple_select_in.sql", 0, 20);
-
 		_assertPerformance("simple_select_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testSubqueryCountPerformance() throws Exception {
 		_assertPerformance("subquery_count_in.sql", 0, 20);
-
 		_assertPerformance("subquery_count_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testSubquerySelectPerformance() throws Exception {
 		_assertPerformance("subquery_select_in.sql", 0, 20);
-
 		_assertPerformance("subquery_select_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testUnionCountPerformance() throws Exception {
 		_assertPerformance("union_select_count_in.sql", 0, 20);
-
 		_assertPerformance("union_select_count_in.sql", 1, 20);
 	}
 
 	@Test
 	public void testUpdateAndDeletePerformance() throws Exception {
 		_assertPerformance("update_in.sql", 0, 20);
-
 		_assertPerformance("update_in.sql", 1, 20);
-
 		_assertPerformance("delete_in.sql", 0, 20);
-
 		_assertPerformance("delete_in.sql", 1, 20);
 	}
 
