@@ -11,7 +11,7 @@ import shareAction from './actions/shareAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import SharedItemRenderer from './cell_renderers/SharedItemRenderer';
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 export default function SharedWithMeFDSPropsTransformer({
@@ -60,7 +60,7 @@ export default function SharedWithMeFDSPropsTransformer({
 					...action,
 					isVisible: (item: any) =>
 						Boolean(
-							item?.className !== OBJECT_ENTRY_FOLDER_CLASSNAME &&
+							item?.className !== OBJECT_ENTRY_FOLDER_CLASS_NAME &&
 								item?.actionIds?.includes('UPDATE')
 						),
 				};
@@ -95,7 +95,7 @@ export default function SharedWithMeFDSPropsTransformer({
 					},
 					isVisible: (item: any) =>
 						Boolean(
-							item?.className !== OBJECT_ENTRY_FOLDER_CLASSNAME &&
+							item?.className !== OBJECT_ENTRY_FOLDER_CLASS_NAME &&
 								!item?.file
 						),
 				};
@@ -105,7 +105,7 @@ export default function SharedWithMeFDSPropsTransformer({
 					...action,
 					isVisible: (item: any) =>
 						Boolean(
-							item?.className !== OBJECT_ENTRY_FOLDER_CLASSNAME &&
+							item?.className !== OBJECT_ENTRY_FOLDER_CLASS_NAME &&
 								item?.file
 						),
 				};

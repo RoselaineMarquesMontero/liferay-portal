@@ -8,7 +8,7 @@ import {IView} from '@liferay/frontend-data-set-web';
 import dateFormat from '../../../common/utils/dateFormat';
 import formatActionURL from '../../../common/utils/formatActionURL';
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 const getHrefLink = (item: any, props: any) => {
@@ -19,7 +19,7 @@ const getHrefLink = (item: any, props: any) => {
 		return null;
 	}
 
-	const isFolder = item.entryClassName === OBJECT_ENTRY_FOLDER_CLASSNAME;
+	const isFolder = item.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME;
 	const resolvedActionId = isFolder ? `${actionId}Folder` : actionId;
 
 	const selectedAction = actions.find(
@@ -34,7 +34,7 @@ const getHrefLink = (item: any, props: any) => {
 };
 
 const getThumbnailProps = (item: any) => {
-	if (item.entryClassName === OBJECT_ENTRY_FOLDER_CLASSNAME) {
+	if (item.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME) {
 		return {symbol: 'folder'};
 	}
 

@@ -8,7 +8,7 @@ import React from 'react';
 
 import formatActionURL from '../../../common/utils/formatActionURL';
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 interface ActionItem {
@@ -33,7 +33,7 @@ export default function SimpleActionLinkRenderer({
 		return value ? <>{value}</> : null;
 	}
 
-	const isFolder = itemData?.entryClassName === OBJECT_ENTRY_FOLDER_CLASSNAME;
+	const isFolder = itemData?.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME;
 	const resolvedActionId = isFolder ? `${actionId}Folder` : actionId;
 
 	const selectedAction = actions.find(

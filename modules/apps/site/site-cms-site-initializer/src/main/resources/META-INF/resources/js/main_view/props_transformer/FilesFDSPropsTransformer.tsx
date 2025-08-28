@@ -30,7 +30,7 @@ const ACTIONS = {
 	uploadMultipleFiles: multipleFilesUploadAction,
 };
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 export default function FilesFDSPropsTransformer({
@@ -108,7 +108,7 @@ export default function FilesFDSPropsTransformer({
 					isVisible: (item: any) =>
 						Boolean(
 							item?.entryClassName !==
-								OBJECT_ENTRY_FOLDER_CLASSNAME
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
 						),
 				};
 			}
@@ -124,7 +124,7 @@ export default function FilesFDSPropsTransformer({
 					isVisible: (item: any) =>
 						Boolean(
 							item?.entryClassName !==
-								OBJECT_ENTRY_FOLDER_CLASSNAME
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
 						),
 				};
 			}

@@ -11,7 +11,7 @@ import React, {useMemo} from 'react';
 
 import formatActionURL from '../../../common/utils/formatActionURL';
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 interface ActionItem {
@@ -39,7 +39,7 @@ export default function SharedItemRenderer({
 			return null;
 		}
 
-		const isFolder = itemData?.className === OBJECT_ENTRY_FOLDER_CLASSNAME;
+		const isFolder = itemData?.className === OBJECT_ENTRY_FOLDER_CLASS_NAME;
 		const isUpdate = itemData?.actionIds?.includes('UPDATE');
 
 		const resolvedActionId = isFolder

@@ -28,7 +28,7 @@ const ACTIONS = {
 	createFolder: createFolderAction,
 };
 
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
+const OBJECT_ENTRY_FOLDER_CLASS_NAME =
 	'com.liferay.object.model.ObjectEntryFolder';
 
 export default function ContentFDSPropsTransformer({
@@ -99,7 +99,7 @@ export default function ContentFDSPropsTransformer({
 					isVisible: (item: any) =>
 						Boolean(
 							item?.entryClassName !==
-								OBJECT_ENTRY_FOLDER_CLASSNAME
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
 						),
 				};
 			}
@@ -109,7 +109,7 @@ export default function ContentFDSPropsTransformer({
 					isVisible: (item: any) =>
 						Boolean(
 							item?.entryClassName !==
-								OBJECT_ENTRY_FOLDER_CLASSNAME
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
 						),
 				};
 			}
