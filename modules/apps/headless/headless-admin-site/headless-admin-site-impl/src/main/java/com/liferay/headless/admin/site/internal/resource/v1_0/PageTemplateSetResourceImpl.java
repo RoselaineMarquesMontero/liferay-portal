@@ -17,19 +17,21 @@ import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-
 import com.liferay.portal.vulcan.util.SearchUtil;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ServiceScope;
+
 import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Collections;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ServiceScope;
 
 /**
  * @author Rubén Pulido
@@ -56,6 +58,11 @@ public class PageTemplateSetResourceImpl
 			GroupUtil.getGroupId(
 				false, contextCompany.getCompanyId(),
 				siteExternalReferenceCode));
+	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
 	}
 
 	@Override
@@ -95,21 +102,27 @@ public class PageTemplateSetResourceImpl
 			Collections.emptyMap(),
 			booleanQuery -> {
 			},
-			filter, LayoutPageTemplateCollection.class.getName(),
-			search, pagination,
+			filter, LayoutPageTemplateCollection.class.getName(), search,
+			pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK, "externalReferenceCode", Field.TYPE,
-				Field.COMPANY_ID, Field.GROUP_ID, Field.NAME, Field.DESCRIPTION),
+				Field.COMPANY_ID, Field.GROUP_ID, Field.NAME,
+				Field.DESCRIPTION),
 			searchContext -> {
 				searchContext.addVulcanAggregation(aggregation);
-				searchContext.setGroupIds(new long[] {groupId});
+				searchContext.setAttribute(
+					Field.TYPE,
+					String.valueOf(
+						LayoutPageTemplateCollectionTypeConstants.BASIC));
 				searchContext.setCompanyId(contextCompany.getCompanyId());
-				searchContext.setAttribute(Field.TYPE,
-					String.valueOf(LayoutPageTemplateCollectionTypeConstants.BASIC));
+				searchContext.setGroupIds(new long[] {groupId});
 			},
 			sorts,
 			document -> _toPageTemplateSet(
-				_layoutPageTemplateCollectionService.fetchLayoutPageTemplateCollection(Long.parseLong(document.get(Field.ENTRY_CLASS_PK)))));
+				_layoutPageTemplateCollectionService.
+					fetchLayoutPageTemplateCollection(
+						GetterUtil.getLong(
+							document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -163,11 +176,6 @@ public class PageTemplateSetResourceImpl
 					pageTemplateSet.getDescription()));
 	}
 
-	@Override
-	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
-		return _entityModel;
-	}
-
 	private PageTemplateSet _toPageTemplateSet(
 			LayoutPageTemplateCollection layoutPageTemplateCollection)
 		throws Exception {
@@ -175,7 +183,8 @@ public class PageTemplateSetResourceImpl
 		return _pageTemplateSetDTOConverter.toDTO(layoutPageTemplateCollection);
 	}
 
-	private static final EntityModel _entityModel = new PageTemplateSetEntityModel();
+	private static final EntityModel _entityModel =
+		new PageTemplateSetEntityModel();
 
 	@Reference
 	private LayoutPageTemplateCollectionService
