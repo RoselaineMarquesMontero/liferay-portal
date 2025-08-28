@@ -172,18 +172,18 @@ public class OracleDBCTTest {
 		Assert.assertEquals(
 			WorkflowConstants.STATUS_APPROVED, _ctCollection1.getStatus());
 
-		CTCollection revertedPublication = null;
+		CTCollection revertedCTCollection = null;
 
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			revertedPublication = _ctCollectionLocalService.undoCTCollection(
+			revertedCTCollection = _ctCollectionLocalService.undoCTCollection(
 				_ctCollection1.getCtCollectionId(), TestPropsValues.getUserId(),
 				RandomTestUtil.randomString(), null);
 		}
 
 		Assert.assertEquals(
-			WorkflowConstants.STATUS_DRAFT, revertedPublication.getStatus());
+			WorkflowConstants.STATUS_DRAFT, revertedCTCollection.getStatus());
 
-		_ctCollectionLocalService.deleteCTCollection(revertedPublication);
+		_ctCollectionLocalService.deleteCTCollection(revertedCTCollection);
 	}
 
 	@Test
