@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2025 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
@@ -9,7 +9,6 @@ import com.liferay.layout.page.template.internal.search.spi.model.index.contribu
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLocalService;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.index.contributor.ModelIndexerWriterContributor;
 import com.liferay.portal.search.spi.model.registrar.ModelSearchConfigurator;
@@ -21,9 +20,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Roselaine Marques
  */
-@Component(
-	service = ModelSearchConfigurator.class
-)
+@Component(service = ModelSearchConfigurator.class)
 public class LayoutPageTemplateCollectionModelSearchConfigurator
 	implements ModelSearchConfigurator<LayoutPageTemplateCollection> {
 
@@ -42,7 +39,7 @@ public class LayoutPageTemplateCollectionModelSearchConfigurator
 
 	@Override
 	public ModelIndexerWriterContributor<LayoutPageTemplateCollection>
-	getModelIndexerWriterContributor() {
+		getModelIndexerWriterContributor() {
 
 		return _modelIndexWriterContributor;
 	}
@@ -65,6 +62,5 @@ public class LayoutPageTemplateCollectionModelSearchConfigurator
 
 	private ModelIndexerWriterContributor<LayoutPageTemplateCollection>
 		_modelIndexWriterContributor;
-
 
 }
