@@ -181,7 +181,7 @@ public class ListTypeEntryServiceTest {
 					_listTypeDefinition.getListTypeDefinitionId(),
 					RandomTestUtil.randomString());
 
-			// Without Permissions
+			// Without permissions
 
 			User user = UserTestUtil.addUser();
 
