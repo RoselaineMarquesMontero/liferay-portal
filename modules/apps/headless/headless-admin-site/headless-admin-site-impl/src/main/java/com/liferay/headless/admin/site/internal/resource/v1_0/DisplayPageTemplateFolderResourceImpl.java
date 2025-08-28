@@ -17,6 +17,7 @@ import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
@@ -24,9 +25,10 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.Collections;
 import java.util.Objects;
-import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -59,6 +61,11 @@ public class DisplayPageTemplateFolderResourceImpl
 			GroupUtil.getGroupId(
 				false, contextCompany.getCompanyId(),
 				siteExternalReferenceCode));
+	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
 	}
 
 	@Override
@@ -100,18 +107,26 @@ public class DisplayPageTemplateFolderResourceImpl
 			Collections.emptyMap(),
 			booleanQuery -> {
 			},
-			filter, LayoutPageTemplateCollection.class.getName(),
-			search, pagination,
-			queryConfig -> queryConfig.setSelectedFieldNames(Field.ENTRY_CLASS_PK),
+			filter, LayoutPageTemplateCollection.class.getName(), search,
+			pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(
+				Field.ENTRY_CLASS_PK),
 			searchContext -> {
 				searchContext.addVulcanAggregation(aggregation);
-				searchContext.setGroupIds(new long[] {groupId});
+				searchContext.setAttribute(
+					Field.TYPE,
+					String.valueOf(
+						LayoutPageTemplateCollectionTypeConstants.
+							DISPLAY_PAGE));
 				searchContext.setCompanyId(contextCompany.getCompanyId());
-				searchContext.setAttribute(Field.TYPE, String.valueOf(LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE));
+				searchContext.setGroupIds(new long[] {groupId});
 			},
 			sorts,
 			document -> _toDisplayPageTemplateFolder(
-				_layoutPageTemplateCollectionService.fetchLayoutPageTemplateCollection(Long.parseLong(document.get(Field.ENTRY_CLASS_PK)))));
+				_layoutPageTemplateCollectionService.
+					fetchLayoutPageTemplateCollection(
+						GetterUtil.getLong(
+							document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -202,12 +217,8 @@ public class DisplayPageTemplateFolderResourceImpl
 			layoutPageTemplateCollection);
 	}
 
-	@Override
-	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
-		return _entityModel;
-	}
-
-	private static final EntityModel _entityModel = new DisplayPageTemplateFolderEntityModel();
+	private static final EntityModel _entityModel =
+		new DisplayPageTemplateFolderEntityModel();
 
 	@Reference(
 		target = "(component.name=com.liferay.headless.admin.site.internal.dto.v1_0.converter.DisplayPageTemplateFolderDTOConverter)"
