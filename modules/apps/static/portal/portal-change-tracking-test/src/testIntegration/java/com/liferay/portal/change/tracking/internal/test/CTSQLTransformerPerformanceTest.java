@@ -54,61 +54,61 @@ public class CTSQLTransformerPerformanceTest {
 	}
 
 	@Test
-	public void testJoinCountPerformance() throws Exception {
+	public void testJoinCount() throws Exception {
 		_assertTransform("join_count_in.sql", 0, 20);
 		_assertTransform("join_count_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testJoinSelectPerformance() throws Exception {
+	public void testJoinSelect() throws Exception {
 		_assertTransform("join_select_in.sql", 0, 20);
 		_assertTransform("join_select_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testLeftJoinPerformance() throws Exception {
+	public void testLeftJoin() throws Exception {
 		_assertTransform("left_join_in.sql", 0, 20);
 		_assertTransform("left_join_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testSelfJoinPerformance() throws Exception {
+	public void testSelfJoin() throws Exception {
 		_assertTransform("self_join_in.sql", 0, 20);
 		_assertTransform("self_join_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testSimpleCountPerformance() throws Exception {
+	public void testSimpleCount() throws Exception {
 		_assertTransform("simple_count_in.sql", 0, 20);
 		_assertTransform("simple_count_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testSimpleSelectPerformance() throws Exception {
+	public void testSimpleSelect() throws Exception {
 		_assertTransform("simple_select_in.sql", 0, 20);
 		_assertTransform("simple_select_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testSubqueryCountPerformance() throws Exception {
+	public void testSubqueryCount() throws Exception {
 		_assertTransform("subquery_count_in.sql", 0, 20);
 		_assertTransform("subquery_count_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testSubquerySelectPerformance() throws Exception {
+	public void testSubquerySelect() throws Exception {
 		_assertTransform("subquery_select_in.sql", 0, 20);
 		_assertTransform("subquery_select_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testUnionCountPerformance() throws Exception {
+	public void testUnionCount() throws Exception {
 		_assertTransform("union_select_count_in.sql", 0, 20);
 		_assertTransform("union_select_count_in.sql", 1, 20);
 	}
 
 	@Test
-	public void testUpdateAndDeletePerformance() throws Exception {
+	public void testUpdateAndDelete() throws Exception {
 		_assertTransform("delete_in.sql", 0, 20);
 		_assertTransform("delete_in.sql", 1, 20);
 		_assertTransform("update_in.sql", 0, 20);
