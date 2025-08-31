@@ -26,14 +26,14 @@ public class LayoutPageTemplateEntryModelDocumentContributor
 	public void contribute(
 		Document document, LayoutPageTemplateEntry layoutPageTemplateEntry) {
 
-		document.addText(Field.NAME, layoutPageTemplateEntry.getName());
-		document.addKeyword(Field.TYPE, layoutPageTemplateEntry.getType());
-		document.addKeyword(
-			Field.CLASS_NAME_ID, layoutPageTemplateEntry.getClassNameId());
-		document.addNumber(Field.STATUS, layoutPageTemplateEntry.getStatus());
 		document.addKeyword(
 			"externalReferenceCode",
 			layoutPageTemplateEntry.getExternalReferenceCode());
+		document.addKeyword(
+			Field.CLASS_NAME_ID, layoutPageTemplateEntry.getClassNameId());
+		document.addKeyword(Field.TYPE, layoutPageTemplateEntry.getType());
+		document.addNumber(Field.STATUS, layoutPageTemplateEntry.getStatus());
+		document.addText(Field.NAME, layoutPageTemplateEntry.getName());
 	}
 
 }

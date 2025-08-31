@@ -27,14 +27,13 @@ public class LayoutPageTemplateCollectionModelDocumentContributor
 		Document document,
 		LayoutPageTemplateCollection layoutPageTemplateCollection) {
 
-		document.addText(Field.NAME, layoutPageTemplateCollection.getName());
-		document.addText(
-			Field.DESCRIPTION, layoutPageTemplateCollection.getDescription());
 		document.addKeyword(
 			"externalReferenceCode",
 			layoutPageTemplateCollection.getExternalReferenceCode());
-
 		document.addKeyword(Field.TYPE, layoutPageTemplateCollection.getType());
+		document.addText(
+			Field.DESCRIPTION, layoutPageTemplateCollection.getDescription());
+		document.addText(Field.NAME, layoutPageTemplateCollection.getName());
 	}
 
 }
