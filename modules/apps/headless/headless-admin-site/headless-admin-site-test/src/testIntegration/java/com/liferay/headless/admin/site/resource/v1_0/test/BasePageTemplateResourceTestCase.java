@@ -59,9 +59,6 @@ import java.lang.reflect.Method;
 
 import java.text.Format;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,7 +76,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -590,7 +586,7 @@ public abstract class BasePageTemplateResourceTestCase {
 				testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 					irrelevantSiteExternalReferenceCode,
 					randomIrrelevantPageTemplate());
-            publishPageTemplate(irrelevantGroup.getGroupId(), irrelevantPageTemplate);
+
 			page =
 				pageTemplateResource.
 					getSiteSiteByExternalReferenceCodePageTemplatesPage(
@@ -610,11 +606,11 @@ public abstract class BasePageTemplateResourceTestCase {
 		PageTemplate pageTemplate1 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
+
 		PageTemplate pageTemplate2 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate2);
+
 		page =
 			pageTemplateResource.
 				getSiteSiteByExternalReferenceCodePageTemplatesPage(
@@ -641,7 +637,6 @@ public abstract class BasePageTemplateResourceTestCase {
 		return expectedActions;
 	}
 
-
 	@Test
 	public void testGetSiteSiteByExternalReferenceCodePageTemplatesPageWithFilterDateTimeEquals()
 		throws Exception {
@@ -662,8 +657,6 @@ public abstract class BasePageTemplateResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, pageTemplate1);
 
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
-
 		for (EntityField entityField : entityFields) {
 			Page<PageTemplate> page =
 				pageTemplateResource.
@@ -678,24 +671,6 @@ public abstract class BasePageTemplateResourceTestCase {
 		}
 	}
 
-    @Test
-    public void testGetSiteSiteByExternalReferenceCodePageTemplateWithFilterDateTimeGreaterOrEquals() throws Exception {
-
-        List<EntityField> entityFields = getEntityFields(
-                EntityField.Type.DATE_TIME);
-
-        Page<PageTemplate> originalResult = pageTemplateResource.getSiteSiteByExternalReferenceCodePageTemplatesPage(
-                testGroup.getExternalReferenceCode(), null, null, null, Pagination.of(1, 10), null);
-
-        PageTemplate pageTemplate = testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(testGroup.getExternalReferenceCode(), randomPageTemplate());
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate);
-        for (EntityField entityField : entityFields) {
-            Page<PageTemplate> result = pageTemplateResource.getSiteSiteByExternalReferenceCodePageTemplatesPage(
-                    testGroup.getExternalReferenceCode(), null, null, getFilterString(entityField, "ge", pageTemplate), Pagination.of(1, 10), null);
-            Assert.assertEquals(originalResult.getTotalCount() + 1, result.getTotalCount());
-        }
-    }
-
 	@Test
 	public void testGetSiteSiteByExternalReferenceCodePageTemplatesPageWithFilterDoubleEquals()
 		throws Exception {
@@ -704,8 +679,7 @@ public abstract class BasePageTemplateResourceTestCase {
 			"eq", EntityField.Type.DOUBLE);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodePageTemplatesPageWithFilterStringContains()
 		throws Exception {
 
@@ -713,8 +687,7 @@ public abstract class BasePageTemplateResourceTestCase {
 			"contains", EntityField.Type.STRING);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodePageTemplatesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -722,8 +695,7 @@ public abstract class BasePageTemplateResourceTestCase {
 			"eq", EntityField.Type.STRING);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodePageTemplatesPageWithFilterStringStartsWith()
 		throws Exception {
 
@@ -748,13 +720,12 @@ public abstract class BasePageTemplateResourceTestCase {
 		PageTemplate pageTemplate1 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
+
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		PageTemplate pageTemplate2 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate2);
-        pageTemplateResource.getSiteSiteByExternalReferenceCodePageTemplate(siteExternalReferenceCode, pageTemplate2.getExternalReferenceCode());
+
 		for (EntityField entityField : entityFields) {
 			Page<PageTemplate> page =
 				pageTemplateResource.
@@ -788,20 +759,14 @@ public abstract class BasePageTemplateResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
 
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
-
 		PageTemplate pageTemplate2 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
-
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate2);
 
 		PageTemplate pageTemplate3 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, randomPageTemplate());
 
-
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate3);
 		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
 		int pageSizeLimit = 500;
@@ -962,7 +927,7 @@ public abstract class BasePageTemplateResourceTestCase {
 									"@liferay.com");
 				}
 				else {
-    					BeanTestUtil.setProperty(
+					BeanTestUtil.setProperty(
 						pageTemplate1, entityFieldName,
 						"aaa" +
 							StringUtil.toLowerCase(
@@ -1003,11 +968,11 @@ public abstract class BasePageTemplateResourceTestCase {
 		pageTemplate1 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, pageTemplate1);
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
+
 		pageTemplate2 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, pageTemplate2);
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
+
 		Page<PageTemplate> page =
 			pageTemplateResource.
 				getSiteSiteByExternalReferenceCodePageTemplatesPage(
@@ -1147,7 +1112,7 @@ public abstract class BasePageTemplateResourceTestCase {
 				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				uuid = StringUtil.toLowerCase(RandomTestUtil.randomString());
-				active = true;
+				active = RandomTestUtil.randomBoolean();
 				hiddenFromNavigation = RandomTestUtil.randomBoolean();
 
 				type = Type.create("WidgetPageTemplate");
@@ -1216,7 +1181,7 @@ public abstract class BasePageTemplateResourceTestCase {
 				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				uuid = StringUtil.toLowerCase(RandomTestUtil.randomString());
-				active = true;
+				active = RandomTestUtil.randomBoolean();
 				hiddenFromNavigation = RandomTestUtil.randomBoolean();
 
 				type = Type.create("WidgetPageTemplate");
@@ -2280,6 +2245,11 @@ public abstract class BasePageTemplateResourceTestCase {
 				sb.append(")");
 			}
 			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
 
 				sb.append(_format.format(pageTemplate.getDateCreated()));
 			}
@@ -2304,6 +2274,11 @@ public abstract class BasePageTemplateResourceTestCase {
 				sb.append(")");
 			}
 			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
 
 				sb.append(_format.format(pageTemplate.getDateModified()));
 			}
@@ -2596,14 +2571,6 @@ public abstract class BasePageTemplateResourceTestCase {
 			invoke(queryGraphQLField.toString()));
 	}
 
-    protected void publishPageTemplate(long groupId, PageTemplate pageTemplate)
-            throws Exception {
-
-        throw new UnsupportedOperationException(
-                "This method needs to be implemented");
-
-    }
-
 	protected PageTemplate randomPageTemplate() throws Exception {
 		List<Supplier<PageTemplate>> suppliers = Arrays.asList(
 			() -> {
@@ -2644,7 +2611,8 @@ public abstract class BasePageTemplateResourceTestCase {
 					StringUtil.toLowerCase(RandomTestUtil.randomString()));
 				pageTemplate.setUuid(
 					StringUtil.toLowerCase(RandomTestUtil.randomString()));
-				pageTemplate.setActive(true);
+
+				pageTemplate.setActive(RandomTestUtil.randomBoolean());
 				pageTemplate.setHiddenFromNavigation(
 					RandomTestUtil.randomBoolean());
 
@@ -2658,7 +2626,6 @@ public abstract class BasePageTemplateResourceTestCase {
 			RandomTestUtil.randomInt(0, suppliers.size() - 1));
 
 		return supplier.get();
-
 	}
 
 	protected PageTemplate randomIrrelevantPageTemplate() throws Exception {
@@ -2681,7 +2648,6 @@ public abstract class BasePageTemplateResourceTestCase {
 			}
 		};
 	}
-
 
 	protected PageTemplateResource pageTemplateResource;
 	protected com.liferay.portal.kernel.model.Group irrelevantGroup;

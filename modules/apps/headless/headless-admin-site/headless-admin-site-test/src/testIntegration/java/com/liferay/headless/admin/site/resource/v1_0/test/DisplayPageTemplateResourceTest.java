@@ -29,17 +29,15 @@ import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.item.provider.InfoItemFormVariationsProvider;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTypeConstants;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
-import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
-import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
+import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -222,7 +220,10 @@ public class DisplayPageTemplateResourceTest
 		_testGetSiteSiteByExternalReferenceCodeDisplayPageTemplateWithNestedFields(
 			displayPageTemplate);
 
-		publishDisplayPageTemplate(testGroup.getGroupId(), displayPageTemplate);
+		ReflectionTestUtil.invoke(
+			_mvcActionCommand, "_publishLayoutPageTemplateEntry",
+			new Class<?>[] {Layout.class, Layout.class},
+			layout.fetchDraftLayout(), layout);
 
 		Assert.assertTrue(_isPublished(layout));
 
@@ -551,25 +552,6 @@ public class DisplayPageTemplateResourceTest
 	}
 
 	@Override
-	protected void publishDisplayPageTemplate(
-			long groupId, DisplayPageTemplate displayPageTemplate)
-		throws PortalException {
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
-				getLayoutPageTemplateEntryByExternalReferenceCode(
-					displayPageTemplate.getExternalReferenceCode(), groupId);
-
-		Layout layout = _layoutLocalService.getLayout(
-			layoutPageTemplateEntry.getPlid());
-
-		ReflectionTestUtil.invoke(
-			_mvcActionCommand, "_publishLayoutPageTemplateEntry",
-			new Class<?>[] {Layout.class, Layout.class},
-			layout.fetchDraftLayout(), layout);
-	}
-
-	@Override
 	protected DisplayPageTemplate randomDisplayPageTemplate() throws Exception {
 		DisplayPageTemplate displayPageTemplate =
 			super.randomDisplayPageTemplate();
@@ -578,7 +560,6 @@ public class DisplayPageTemplateResourceTest
 			_getRandomClassSubtypeReference());
 		displayPageTemplate.setDisplayPageTemplateSettings(
 			_randomDisplayPageTemplateSettings());
-
 		displayPageTemplate.setFriendlyUrlPath_i18n(
 			() -> HashMapBuilder.put(
 				LocaleUtil.toBCP47LanguageId(LocaleUtil.SPAIN),
@@ -1105,21 +1086,33 @@ public class DisplayPageTemplateResourceTest
 
 		Assert.assertFalse(_isPublished(layout));
 
-		publishDisplayPageTemplate(testGroup.getGroupId(), displayPageTemplate);
-
-		Assert.assertTrue(_isPublished(layout));
+		DisplayPageTemplateResource displayPageTemplateResource =
+			_getDisplayPageTemplateResource();
 
 		page =
-			_getDisplayPageTemplateResource().
+			displayPageTemplateResource.
 				getSiteSiteByExternalReferenceCodeDisplayPageTemplatesPage(
 					testGroup.getExternalReferenceCode(), null, null, null,
 					null, null);
 
 		Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-		LayoutPageTemplateEntryServiceUtil.getLayoutPageTemplateEntries(
-			testGroup.getGroupId(),
-			LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, -1, -1, null);
+		_assertNestedFields(
+			_getDisplayPageTemplate(
+				(List<DisplayPageTemplate>)page.getItems(),
+				displayPageTemplate.getExternalReferenceCode()));
+
+		ContentLayoutTestUtil.publishLayout(layout.fetchDraftLayout(), layout);
+
+		Assert.assertTrue(_isPublished(layout));
+
+		page =
+			displayPageTemplateResource.
+				getSiteSiteByExternalReferenceCodeDisplayPageTemplatesPage(
+					testGroup.getExternalReferenceCode(), null, null, null,
+					null, null);
+
+		Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
 		_assertNestedFields(
 			_getDisplayPageTemplate(

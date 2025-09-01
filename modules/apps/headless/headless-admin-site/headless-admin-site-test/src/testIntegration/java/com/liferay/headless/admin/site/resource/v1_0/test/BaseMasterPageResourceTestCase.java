@@ -73,7 +73,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -458,8 +457,6 @@ public abstract class BaseMasterPageResourceTestCase {
 					irrelevantSiteExternalReferenceCode,
 					randomIrrelevantMasterPage());
 
-            publishMasterPage(irrelevantGroup.getGroupId(), irrelevantMasterPage);
-
 			page =
 				masterPageResource.
 					getSiteSiteByExternalReferenceCodeMasterPagesPage(
@@ -480,13 +477,9 @@ public abstract class BaseMasterPageResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
 
-        publishMasterPage(testGroup.getGroupId(), masterPage1);
-
 		MasterPage masterPage2 =
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
-
-        publishMasterPage(testGroup.getGroupId(), masterPage2);
 
 		page =
 			masterPageResource.
@@ -534,8 +527,6 @@ public abstract class BaseMasterPageResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, masterPage1);
 
-        publishMasterPage(testGroup.getGroupId(), masterPage1);
-
 		for (EntityField entityField : entityFields) {
 			Page<MasterPage> page =
 				masterPageResource.
@@ -550,24 +541,6 @@ public abstract class BaseMasterPageResourceTestCase {
 		}
 	}
 
-    @Test
-    public void testGetSiteSiteByExternalReferenceCodePageTemplateWithFilterDateTimeGreaterOrEquals() throws Exception {
-
-        List<EntityField> entityFields = getEntityFields(
-                EntityField.Type.DATE_TIME);
-
-        Page<MasterPage> originalResult = masterPageResource.getSiteSiteByExternalReferenceCodeMasterPagesPage(
-                testGroup.getExternalReferenceCode(), null, null, null, Pagination.of(1, 10), null);
-
-        MasterPage masterPage = testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(testGroup.getExternalReferenceCode(), randomMasterPage());
-        publishMasterPage(testGroup.getGroupId(), masterPage);
-        for (EntityField entityField : entityFields) {
-            Page<MasterPage> result = masterPageResource.getSiteSiteByExternalReferenceCodeMasterPagesPage(
-                    testGroup.getExternalReferenceCode(), null, null, getFilterString(entityField, "ge", masterPage), Pagination.of(1, 10), null);
-            Assert.assertEquals(originalResult.getTotalCount() + 1, result.getTotalCount());
-        }
-    }
-
 	@Test
 	public void testGetSiteSiteByExternalReferenceCodeMasterPagesPageWithFilterDoubleEquals()
 		throws Exception {
@@ -576,8 +549,7 @@ public abstract class BaseMasterPageResourceTestCase {
 			"eq", EntityField.Type.DOUBLE);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodeMasterPagesPageWithFilterStringContains()
 		throws Exception {
 
@@ -585,8 +557,7 @@ public abstract class BaseMasterPageResourceTestCase {
 			"contains", EntityField.Type.STRING);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodeMasterPagesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -594,8 +565,7 @@ public abstract class BaseMasterPageResourceTestCase {
 			"eq", EntityField.Type.STRING);
 	}
 
-	@Ignore
-    @Test
+	@Test
 	public void testGetSiteSiteByExternalReferenceCodeMasterPagesPageWithFilterStringStartsWith()
 		throws Exception {
 
@@ -621,14 +591,10 @@ public abstract class BaseMasterPageResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
 
-        publishMasterPage(testGroup.getGroupId(), masterPage1);
-
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		MasterPage masterPage2 =
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
-
-        publishMasterPage(testGroup.getGroupId(), masterPage2);
 
 		for (EntityField entityField : entityFields) {
 			Page<MasterPage> page =
@@ -662,19 +628,13 @@ public abstract class BaseMasterPageResourceTestCase {
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
 
-        publishMasterPage(testGroup.getGroupId(), masterPage1);
-
 		MasterPage masterPage2 =
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
 
-        publishMasterPage(testGroup.getGroupId(), masterPage2);
-
 		MasterPage masterPage3 =
 			testGetSiteSiteByExternalReferenceCodeMasterPagesPage_addMasterPage(
 				siteExternalReferenceCode, randomMasterPage());
-
-        publishMasterPage(testGroup.getGroupId(), masterPage3);
 
 		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
@@ -1834,6 +1794,11 @@ public abstract class BaseMasterPageResourceTestCase {
 				sb.append(")");
 			}
 			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
 
 				sb.append(_format.format(masterPage.getDateCreated()));
 			}
@@ -1858,6 +1823,11 @@ public abstract class BaseMasterPageResourceTestCase {
 				sb.append(")");
 			}
 			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
 
 				sb.append(_format.format(masterPage.getDateModified()));
 			}
@@ -2145,14 +2115,6 @@ public abstract class BaseMasterPageResourceTestCase {
 			invoke(queryGraphQLField.toString()));
 	}
 
-    protected void publishMasterPage(long groupId, MasterPage masterPage)
-            throws Exception {
-
-        throw new UnsupportedOperationException(
-                "This method needs to be implemented");
-
-    }
-
 	protected MasterPage randomMasterPage() throws Exception {
 		return new MasterPage() {
 			{
@@ -2239,8 +2201,6 @@ public abstract class BaseMasterPageResourceTestCase {
 
 			return false;
 		}
-
-
 
 		public static void setProperty(Object bean, String name, Object value)
 			throws Exception {
