@@ -59,9 +59,6 @@ import java.lang.reflect.Method;
 
 import java.text.Format;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1007,7 +1004,7 @@ public abstract class BasePageTemplateResourceTestCase {
 		pageTemplate2 =
 			testGetSiteSiteByExternalReferenceCodePageTemplatesPage_addPageTemplate(
 				siteExternalReferenceCode, pageTemplate2);
-        publishPageTemplate(testGroup.getGroupId(), pageTemplate1);
+        publishPageTemplate(testGroup.getGroupId(), pageTemplate2);
 		Page<PageTemplate> page =
 			pageTemplateResource.
 				getSiteSiteByExternalReferenceCodePageTemplatesPage(
