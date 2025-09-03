@@ -34,9 +34,11 @@ public class LayoutPageTemplateCollectionKeywordQueryContributor
 			keywordQueryContributorHelper.getSearchContext();
 
 		_queryHelper.addSearchTerm(
-			booleanQuery, searchContext, Field.DESCRIPTION, true);
+			booleanQuery, searchContext, Field.DESCRIPTION, false);
 		_queryHelper.addSearchTerm(
-			booleanQuery, searchContext, Field.NAME, true);
+			booleanQuery, searchContext, "externalReferenceCode", false);
+		_queryHelper.addSearchTerm(
+			booleanQuery, searchContext, Field.NAME, false);
 	}
 
 	@Reference
