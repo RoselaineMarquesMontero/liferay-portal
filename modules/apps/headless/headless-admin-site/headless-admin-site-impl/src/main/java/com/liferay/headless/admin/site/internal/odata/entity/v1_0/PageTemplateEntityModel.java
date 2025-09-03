@@ -7,11 +7,13 @@ package com.liferay.headless.admin.site.internal.odata.entity.v1_0;
 
 import com.liferay.headless.common.spi.odata.entity.EntityFieldsMapFactory;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.odata.entity.ComplexEntityField;
 import com.liferay.portal.odata.entity.DateTimeEntityField;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.entity.StringEntityField;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -21,6 +23,10 @@ public class PageTemplateEntityModel implements EntityModel {
 
 	public PageTemplateEntityModel() {
 		_entityFieldsMap = EntityFieldsMapFactory.create(
+			new ComplexEntityField(
+				"type",
+				Collections.singletonList(
+					new StringEntityField("enum", locale -> Field.TYPE))),
 			new DateTimeEntityField(
 				"dateCreated",
 				locale -> Field.getSortableFieldName(Field.CREATE_DATE),
@@ -30,9 +36,7 @@ public class PageTemplateEntityModel implements EntityModel {
 				locale -> Field.getSortableFieldName(Field.MODIFIED_DATE),
 				locale -> Field.MODIFIED_DATE),
 			new StringEntityField(
-				"name", locale -> Field.getSortableFieldName(Field.NAME)),
-			new StringEntityField(
-				"type", locale -> Field.getSortableFieldName(Field.TYPE)));
+				"name", locale -> Field.getSortableFieldName(Field.NAME)));
 	}
 
 	@Override
