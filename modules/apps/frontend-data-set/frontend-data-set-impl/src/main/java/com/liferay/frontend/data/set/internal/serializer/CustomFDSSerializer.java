@@ -242,7 +242,8 @@ public class CustomFDSSerializer
 			getSortedRelatedObjectEntries(
 				fdsName, httpServletRequest,
 				(ObjectEntry objectEntry) ->
-					Objects.equals(_getType(objectEntry), "creation") &&
+					Objects.equals(
+						_getObjectEntryType(objectEntry), "creation") &&
 					_isActive(objectEntry),
 				"creationActionsOrder", "dataSetToDataSetActions"),
 			objectEntry -> {
@@ -355,7 +356,8 @@ public class CustomFDSSerializer
 				getSortedRelatedObjectEntries(
 					fdsName, httpServletRequest,
 					(ObjectEntry objectEntry) ->
-						Objects.equals(_getType(objectEntry), "item") &&
+						Objects.equals(
+							_getObjectEntryType(objectEntry), "item") &&
 						_isActive(objectEntry),
 					"itemActionsOrder", "dataSetToDataSetActions"),
 				objectEntry -> {
@@ -940,6 +942,12 @@ public class CustomFDSSerializer
 		return objectEntry;
 	}
 
+	private String _getObjectEntryType(ObjectEntry objectEntry) {
+		Map<String, Object> properties = objectEntry.getProperties();
+
+		return GetterUtil.getString(properties.get("type"));
+	}
+
 	private Collection<ObjectEntry> _getRelatedObjectEntries(
 		ObjectDefinition objectDefinition, ObjectEntry objectEntry,
 		Predicate<ObjectEntry> predicate, String relationshipName) {
@@ -989,13 +997,23 @@ public class CustomFDSSerializer
 		return objectEntries;
 	}
 
-	private String _getType(ObjectEntry objectEntry) {
+	private boolean _isActive(ObjectEntry objectEntry) {
 		Map<String, Object> properties = objectEntry.getProperties();
 
-		return GetterUtil.getString(properties.get("type"));
+		return (boolean)properties.get("active");
 	}
 
-	private Object _getTypedKey(
+	private boolean _isCollection(String fieldName, String sourceType) {
+		if (fieldName.contains(StringPool.OPEN_BRACKET) &&
+			Objects.equals(sourceType, "OBJECT_PICKLIST")) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private Object _parseListTypeEntryKeyByEntityFieldType(
 		String entityFieldType, ListTypeEntry listTypeEntry) {
 
 		if (Objects.equals(entityFieldType, FDSEntityFieldTypes.INTEGER)) {
@@ -1010,22 +1028,6 @@ public class CustomFDSSerializer
 		}
 
 		return listTypeEntry.getKey();
-	}
-
-	private Boolean _isActive(ObjectEntry objectEntry) {
-		Map<String, Object> properties = objectEntry.getProperties();
-
-		return (boolean)properties.get("active");
-	}
-
-	private boolean _isCollection(String fieldName, String sourceType) {
-		if (fieldName.contains(StringPool.OPEN_BRACKET) &&
-			Objects.equals(sourceType, "OBJECT_PICKLIST")) {
-
-			return true;
-		}
-
-		return false;
 	}
 
 	private JSONObject _serializeFilter(
@@ -1287,7 +1289,9 @@ public class CustomFDSSerializer
 					listTypeEntry.getName(
 						PortalUtil.getLocale(httpServletRequest))
 				).put(
-					"value", () -> _getTypedKey(entityFieldType, listTypeEntry)
+					"value",
+					() -> _parseListTypeEntryKeyByEntityFieldType(
+						entityFieldType, listTypeEntry)
 				))
 		).put(
 			"preloadedData",
@@ -1319,7 +1323,7 @@ public class CustomFDSSerializer
 									PortalUtil.getLocale(httpServletRequest))
 							).put(
 								"value",
-								() -> _getTypedKey(
+								() -> _parseListTypeEntryKeyByEntityFieldType(
 									entityFieldType, listTypeEntry)
 							));
 					}
