@@ -57,18 +57,16 @@ public class ChangesetEntryClassExternalReferenceCodeUpgradeProcessTest {
 		_db.runSQL(
 			StringBundler.concat(
 				"insert into ChangesetEntry (changesetEntryId, ",
-				"classExternalReferenceCode) values (",
-				changesetEntryId1, ", '",
-				_OVERSIZED_EXTERNAL_REFERENCE_CODE, "')"));
+				"classExternalReferenceCode) values (", changesetEntryId1,
+				", '", _OVERSIZED_EXTERNAL_REFERENCE_CODE, "')"));
 
 		long changesetEntryId2 = RandomTestUtil.nextLong();
 
 		_db.runSQL(
 			StringBundler.concat(
 				"insert into ChangesetEntry (changesetEntryId, ",
-				"classExternalReferenceCode) values (",
-				changesetEntryId2, ", '",
-				_MAX_LENGTH_EXTERNAL_REFERENCE_CODE, "')"));
+				"classExternalReferenceCode) values (", changesetEntryId2,
+				", '", _MAX_LENGTH_EXTERNAL_REFERENCE_CODE, "')"));
 
 		UpgradeProcess upgradeProcess = UpgradeTestUtil.getUpgradeStep(
 			_upgradeStepRegistrator, _CLASS_NAME);
@@ -88,10 +86,11 @@ public class ChangesetEntryClassExternalReferenceCodeUpgradeProcessTest {
 			}
 
 			try (Connection connection = DataAccess.getConnection();
-				 PreparedStatement preparedStatement =
-					 connection.prepareStatement(
-						 "select classExternalReferenceCode from ChangesetEntry " +
-							 "where changesetEntryId = ?")) {
+
+				PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select classExternalReferenceCode from " +
+							"ChangesetEntry where changesetEntryId = ?")) {
 
 				preparedStatement.setLong(1, changesetEntryId1);
 
@@ -116,8 +115,7 @@ public class ChangesetEntryClassExternalReferenceCodeUpgradeProcessTest {
 			_db.runSQL(
 				StringBundler.concat(
 					"delete from ChangesetEntry where changesetEntryId in (",
-					changesetEntryId1, ", ", changesetEntryId2,
-					")"));
+					changesetEntryId1, ", ", changesetEntryId2, ")"));
 		}
 	}
 
@@ -128,8 +126,8 @@ public class ChangesetEntryClassExternalReferenceCodeUpgradeProcessTest {
 	private static final String _MAX_LENGTH_EXTERNAL_REFERENCE_CODE =
 		"a".repeat(500);
 
-	private static final String _OVERSIZED_EXTERNAL_REFERENCE_CODE =
-		"a".repeat(501);
+	private static final String _OVERSIZED_EXTERNAL_REFERENCE_CODE = "a".repeat(
+		501);
 
 	private static DB _db;
 

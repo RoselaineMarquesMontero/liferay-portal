@@ -57,16 +57,16 @@ public class OAuth2ApplicationExternalReferenceCodeUpgradeProcessTest {
 		_db.runSQL(
 			StringBundler.concat(
 				"insert into OAuth2Application (oAuth2ApplicationId, ",
-				"externalReferenceCode) values (", oAuth2ApplicationId1,
-				", '", _OVERSIZED_EXTERNAL_REFERENCE_CODE, "')"));
+				"externalReferenceCode) values (", oAuth2ApplicationId1, ", '",
+				_OVERSIZED_EXTERNAL_REFERENCE_CODE, "')"));
 
 		long oAuth2ApplicationId2 = RandomTestUtil.nextLong();
 
 		_db.runSQL(
 			StringBundler.concat(
 				"insert into OAuth2Application (oAuth2ApplicationId, ",
-				"externalReferenceCode) values (", oAuth2ApplicationId2,
-				", '", _MAX_LENGTH_EXTERNAL_REFERENCE_CODE, "')"));
+				"externalReferenceCode) values (", oAuth2ApplicationId2, ", '",
+				_MAX_LENGTH_EXTERNAL_REFERENCE_CODE, "')"));
 
 		UpgradeProcess upgradeProcess = UpgradeTestUtil.getUpgradeStep(
 			_upgradeStepRegistrator, _CLASS_NAME);
@@ -86,10 +86,11 @@ public class OAuth2ApplicationExternalReferenceCodeUpgradeProcessTest {
 			}
 
 			try (Connection connection = DataAccess.getConnection();
-				 PreparedStatement preparedStatement =
-					 connection.prepareStatement(
-						 "select externalReferenceCode from OAuth2Application " +
-							 "where oAuth2ApplicationId = ?")) {
+
+				PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select externalReferenceCode from OAuth2Application " +
+							"where oAuth2ApplicationId = ?")) {
 
 				preparedStatement.setLong(1, oAuth2ApplicationId1);
 
@@ -114,8 +115,8 @@ public class OAuth2ApplicationExternalReferenceCodeUpgradeProcessTest {
 			_db.runSQL(
 				StringBundler.concat(
 					"delete from OAuth2Application where oAuth2ApplicationId ",
-					"in (", oAuth2ApplicationId1, ", ",
-					oAuth2ApplicationId2, ")"));
+					"in (", oAuth2ApplicationId1, ", ", oAuth2ApplicationId2,
+					")"));
 		}
 	}
 
@@ -126,8 +127,8 @@ public class OAuth2ApplicationExternalReferenceCodeUpgradeProcessTest {
 	private static final String _MAX_LENGTH_EXTERNAL_REFERENCE_CODE =
 		"a".repeat(500);
 
-	private static final String _OVERSIZED_EXTERNAL_REFERENCE_CODE =
-		"a".repeat(501);
+	private static final String _OVERSIZED_EXTERNAL_REFERENCE_CODE = "a".repeat(
+		501);
 
 	private static DB _db;
 
