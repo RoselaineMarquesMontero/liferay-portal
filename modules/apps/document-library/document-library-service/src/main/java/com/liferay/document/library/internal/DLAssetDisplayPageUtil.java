@@ -9,6 +9,8 @@ import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -36,6 +38,14 @@ public class DLAssetDisplayPageUtil {
 						PortalUtil.getClassNameId(FileEntry.class),
 						fileEntryTypeId);
 
+			if (_log.isDebugEnabled()){
+				boolean layoutPageTemplateEntry1 = layoutPageTemplateEntry != null;
+				_log.debug("** hasAssetDisplayPage: " + layoutPageTemplateEntry1 +
+						" serviceContext.getScopeGroupId(): " + serviceContext.getScopeGroupId() +
+						" PortalUtil.getClassNameId(FileEntry.class): " + PortalUtil.getClassNameId(FileEntry.class) +
+						" fileEntryTypeId: " + fileEntryTypeId + " ***" );
+			}
+
 			if (layoutPageTemplateEntry == null) {
 				return false;
 			}
@@ -52,5 +62,6 @@ public class DLAssetDisplayPageUtil {
 
 		return true;
 	}
-
+	private static final Log _log = LogFactoryUtil.getLog(
+			DLAssetDisplayPageUtil.class);
 }

@@ -322,6 +322,13 @@ public class DLFileEntryAssetRenderer
 		throws PortalException {
 
 		if (_assetDisplayPageFriendlyURLProvider != null) {
+
+			//LPP-64468 Debug buscando DPT
+
+			if (_log.isDebugEnabled()) {
+				 _log.debug( "*** Searching for DPT ***");
+			}
+
 			String friendlyURL =
 				_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
 					new InfoItemReference(
@@ -333,6 +340,13 @@ public class DLFileEntryAssetRenderer
 				return friendlyURL;
 			}
 		}
+
+		//LPP-64468 Debug buscando Layout Portlet Preferences
+
+		if (_log.isDebugEnabled()) {
+			_log.debug( "*** Searching for Layout Portlet Preferences ***");
+		}
+
 
 		if (!_hasViewInContextGroupLayout(
 				themeDisplay, _fileEntry.getGroupId())) {

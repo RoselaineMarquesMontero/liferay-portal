@@ -21,12 +21,15 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
+import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.sites.kernel.util.SitesUtil;
 
 import jakarta.portlet.PortletPreferences;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,6 +42,20 @@ public abstract class BasePortletLayoutFinder implements PortletLayoutFinder {
 		throws PortalException {
 
 		String[] portletIds = getPortletIds();
+
+		//LPP-64468 Debug PortletLayoutFinder
+
+		if (_log.isDebugEnabled() &&
+			ArrayUtil.contains(
+				portletIds,
+				"com_liferay_document_library_web_portlet_DLPortlet")) {
+
+			_log.debug(
+				StringBundler.concat(
+					"*** Finding a layout for portlet IDs ",
+					Arrays.toString(portletIds), "\n",
+					StackTraceUtil.getStackTrace(new Throwable())));
+		}
 
 		if ((themeDisplay.getPlid() != LayoutConstants.DEFAULT_PLID) &&
 			(groupId == themeDisplay.getScopeGroupId())) {
