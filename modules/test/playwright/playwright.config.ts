@@ -74,6 +74,7 @@ import {config as designLibraryWebConfig} from './tests/design-library-web/main/
 import {config as dispatchWebConfig} from './tests/dispatch-web/main/config';
 import {config as documentLibraryWebConfig} from './tests/document-library-web/main/config';
 import {config as dynamicDataMappingFormWebConfig} from './tests/dynamic-data-mapping-form-web/main/config';
+import {config as e2eCmsDxpBulkOperationsConfig} from './tests/e2e-cms-dxp/bulk-operations/main/config';
 import {config as e2eCmsDxpContentPageConfig} from './tests/e2e-cms-dxp/content-page/main/config';
 import {config as e2eCmsDxpDisplayPageTemplateConfig} from './tests/e2e-cms-dxp/display-page-template/main/config';
 import {config as e2eCmsDxpSharingConfig} from './tests/e2e-cms-dxp/sharing/main/config';
@@ -319,6 +320,7 @@ export default defineConfig({
 		dispatchWebConfig,
 		documentLibraryWebConfig,
 		dynamicDataMappingFormWebConfig,
+		e2eCmsDxpBulkOperationsConfig,
 		e2eCmsDxpDisplayPageTemplateConfig,
 		e2eCmsDxpContentPageConfig,
 		e2eCmsDxpSharingConfig,
