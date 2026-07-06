@@ -5,6 +5,9 @@
 
 package com.liferay.journal.article.dynamic.data.mapping.form.field.type.internal.journal.article;
 
+import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
+import com.liferay.item.selector.ItemSelector;
+import com.liferay.item.selector.criteria.info.item.criterion.InfoItemItemSelectorCriterion;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.petra.string.StringPool;
@@ -17,12 +20,15 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
@@ -46,6 +52,50 @@ public class JournalArticleDDMFormFieldTemplateContextContributorTest {
 		ReflectionTestUtil.setFieldValue(
 			_journalArticleDDMFormFieldTemplateContextContributor, "_portal",
 			_portal);
+		ReflectionTestUtil.setFieldValue(
+			_journalArticleDDMFormFieldTemplateContextContributor,
+			"_itemSelector", _itemSelector);
+	}
+
+	@Test
+	public void testGetItemSelectorURL() throws Exception {
+		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
+			Mockito.mock(DDMFormFieldRenderingContext.class);
+
+		Mockito.when(
+			ddmFormFieldRenderingContext.getPortletNamespace()
+		).thenReturn(
+			RandomTestUtil.randomString()
+		);
+
+		HttpServletRequest httpServletRequest = Mockito.mock(
+			HttpServletRequest.class);
+
+		ReflectionTestUtil.invoke(
+			_journalArticleDDMFormFieldTemplateContextContributor,
+			"_getItemSelectorURL",
+			new Class<?>[] {
+				DDMFormFieldRenderingContext.class, HttpServletRequest.class
+			},
+			ddmFormFieldRenderingContext, httpServletRequest);
+
+		ArgumentCaptor<InfoItemItemSelectorCriterion>
+			infoItemItemSelectorCriterionArgumentCaptor =
+				ArgumentCaptor.forClass(InfoItemItemSelectorCriterion.class);
+
+		Mockito.verify(
+			_itemSelector
+		).getItemSelectorURL(
+			Mockito.any(), Mockito.anyString(),
+			infoItemItemSelectorCriterionArgumentCaptor.capture()
+		);
+
+		InfoItemItemSelectorCriterion infoItemItemSelectorCriterion =
+			infoItemItemSelectorCriterionArgumentCaptor.getValue();
+
+		Assert.assertEquals(
+			JournalArticle.class.getName(),
+			infoItemItemSelectorCriterion.getItemType());
 	}
 
 	@Test
@@ -120,6 +170,7 @@ public class JournalArticleDDMFormFieldTemplateContextContributorTest {
 		Assert.assertEquals(StringPool.BLANK, _getValue(null));
 	}
 
+	private final ItemSelector _itemSelector = Mockito.mock(ItemSelector.class);
 	private final JournalArticle _journalArticle = Mockito.mock(
 		JournalArticle.class);
 	private final JournalArticleDDMFormFieldTemplateContextContributor
