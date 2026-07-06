@@ -78,6 +78,7 @@ import {config as e2eCmsDxpContentPageConfig} from './tests/e2e-cms-dxp/content-
 import {config as e2eCmsDxpDisplayPageTemplateConfig} from './tests/e2e-cms-dxp/display-page-template/main/config';
 import {config as e2eCmsDxpSharingConfig} from './tests/e2e-cms-dxp/sharing/main/config';
 import {config as e2eCmsDxpTranslationsConfig} from './tests/e2e-cms-dxp/translations/main/config';
+import {config as e2eCmsDxpVersioningConfig} from './tests/e2e-cms-dxp/versioning/main/config';
 import {config as e2eCmsDxpWorkflowConfig} from './tests/e2e-cms-dxp/workflow/main/config';
 import {config as expandoWebConfig} from './tests/expando-web/main/config';
 import {config as exportImportServiceConfig} from './tests/export-import-service/main/config';
@@ -323,6 +324,7 @@ export default defineConfig({
 		e2eCmsDxpContentPageConfig,
 		e2eCmsDxpSharingConfig,
 		e2eCmsDxpTranslationsConfig,
+		e2eCmsDxpVersioningConfig,
 		e2eCmsDxpWorkflowConfig,
 		expandoWebConfig,
 		exportImportServiceConfig,
