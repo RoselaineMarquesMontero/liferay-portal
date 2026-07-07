@@ -76,6 +76,7 @@ import {config as documentLibraryWebConfig} from './tests/document-library-web/m
 import {config as dynamicDataMappingFormWebConfig} from './tests/dynamic-data-mapping-form-web/main/config';
 import {config as e2eCmsDxpContentPageConfig} from './tests/e2e-cms-dxp/content-page/main/config';
 import {config as e2eCmsDxpDisplayPageTemplateConfig} from './tests/e2e-cms-dxp/display-page-template/main/config';
+import {config as e2eCmsDxpRestrictedAccessConfig} from './tests/e2e-cms-dxp/restricted-access/main/config';
 import {config as e2eCmsDxpSharingConfig} from './tests/e2e-cms-dxp/sharing/main/config';
 import {config as e2eCmsDxpTranslationsConfig} from './tests/e2e-cms-dxp/translations/main/config';
 import {config as e2eCmsDxpWorkflowConfig} from './tests/e2e-cms-dxp/workflow/main/config';
@@ -321,6 +322,7 @@ export default defineConfig({
 		dynamicDataMappingFormWebConfig,
 		e2eCmsDxpDisplayPageTemplateConfig,
 		e2eCmsDxpContentPageConfig,
+		e2eCmsDxpRestrictedAccessConfig,
 		e2eCmsDxpSharingConfig,
 		e2eCmsDxpTranslationsConfig,
 		e2eCmsDxpWorkflowConfig,
