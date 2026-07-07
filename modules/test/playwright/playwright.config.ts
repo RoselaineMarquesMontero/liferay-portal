@@ -75,6 +75,7 @@ import {config as dispatchWebConfig} from './tests/dispatch-web/main/config';
 import {config as documentLibraryWebConfig} from './tests/document-library-web/main/config';
 import {config as dynamicDataMappingFormWebConfig} from './tests/dynamic-data-mapping-form-web/main/config';
 import {config as e2eCmsDxpContentPageConfig} from './tests/e2e-cms-dxp/content-page/main/config';
+import {config as e2eCmsDxpCrossSpaceSharingConfig} from './tests/e2e-cms-dxp/cross-space-sharing/main/config';
 import {config as e2eCmsDxpDisplayPageTemplateConfig} from './tests/e2e-cms-dxp/display-page-template/main/config';
 import {config as e2eCmsDxpSharingConfig} from './tests/e2e-cms-dxp/sharing/main/config';
 import {config as e2eCmsDxpTranslationsConfig} from './tests/e2e-cms-dxp/translations/main/config';
@@ -321,6 +322,7 @@ export default defineConfig({
 		dynamicDataMappingFormWebConfig,
 		e2eCmsDxpDisplayPageTemplateConfig,
 		e2eCmsDxpContentPageConfig,
+		e2eCmsDxpCrossSpaceSharingConfig,
 		e2eCmsDxpSharingConfig,
 		e2eCmsDxpTranslationsConfig,
 		e2eCmsDxpWorkflowConfig,
