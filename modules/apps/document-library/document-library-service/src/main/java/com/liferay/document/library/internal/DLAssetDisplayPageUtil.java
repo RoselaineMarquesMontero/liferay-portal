@@ -34,8 +34,11 @@ public class DLAssetDisplayPageUtil {
 
 		if (displayPageType == AssetDisplayPageConstants.TYPE_DEFAULT) {
 			long fileEntryTypeId = ParamUtil.getLong(
-				serviceContext, "fileEntryTypeId",
-				_getFileEntryTypeId(fileEntryId));
+				serviceContext, "fileEntryTypeId", _FILE_ENTRY_TYPE_ID_UNKNOWN);
+
+			if (fileEntryTypeId == _FILE_ENTRY_TYPE_ID_UNKNOWN) {
+				fileEntryTypeId = _getFileEntryTypeId(fileEntryId);
+			}
 
 			LayoutPageTemplateEntry layoutPageTemplateEntry =
 				LayoutPageTemplateEntryServiceUtil.
@@ -73,5 +76,7 @@ public class DLAssetDisplayPageUtil {
 
 		return DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;
 	}
+
+	private static final long _FILE_ENTRY_TYPE_ID_UNKNOWN = -1;
 
 }
