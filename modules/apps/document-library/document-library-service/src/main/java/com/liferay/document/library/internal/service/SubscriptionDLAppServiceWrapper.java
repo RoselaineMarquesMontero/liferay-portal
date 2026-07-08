@@ -143,44 +143,4 @@ public class SubscriptionDLAppServiceWrapper extends DLAppServiceWrapper {
 			expirationDate, reviewDate, serviceContext);
 	}
 
-	@Override
-	public FileEntry updateFileEntryAndCheckIn(
-			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String urlTitle, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease, File file,
-			Date displayDate, Date expirationDate, Date reviewDate,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		serviceContext.setAttribute(
-			"hasAssetDisplayPage",
-			DLAssetDisplayPageUtil.hasAssetDisplayPage(
-				serviceContext, fileEntryId));
-
-		return super.updateFileEntryAndCheckIn(
-			fileEntryId, sourceFileName, mimeType, title, urlTitle, description,
-			changeLog, dlVersionNumberIncrease, file, displayDate,
-			expirationDate, reviewDate, serviceContext);
-	}
-
-	@Override
-	public FileEntry updateFileEntryAndCheckIn(
-			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String urlTitle, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
-			InputStream inputStream, long size, Date displayDate,
-			Date expirationDate, Date reviewDate, ServiceContext serviceContext)
-		throws PortalException {
-
-		serviceContext.setAttribute(
-			"hasAssetDisplayPage",
-			DLAssetDisplayPageUtil.hasAssetDisplayPage(
-				serviceContext, fileEntryId));
-
-		return super.updateFileEntryAndCheckIn(
-			fileEntryId, sourceFileName, mimeType, title, urlTitle, description,
-			changeLog, dlVersionNumberIncrease, inputStream, size, displayDate,
-			expirationDate, reviewDate, serviceContext);
-	}
-
 }
