@@ -204,7 +204,8 @@ public class SubscriptionDLAppLocalServiceWrapper
 
 		serviceContext.setAttribute(
 			"hasAssetDisplayPage",
-			DLAssetDisplayPageUtil.hasAssetDisplayPage(serviceContext));
+			DLAssetDisplayPageUtil.hasAssetDisplayPage(
+				serviceContext, fileEntryId));
 
 		return super.updateFileEntry(
 			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,
@@ -223,7 +224,8 @@ public class SubscriptionDLAppLocalServiceWrapper
 
 		serviceContext.setAttribute(
 			"hasAssetDisplayPage",
-			DLAssetDisplayPageUtil.hasAssetDisplayPage(serviceContext));
+			DLAssetDisplayPageUtil.hasAssetDisplayPage(
+				serviceContext, fileEntryId));
 
 		return super.updateFileEntry(
 			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,
@@ -242,7 +244,8 @@ public class SubscriptionDLAppLocalServiceWrapper
 
 		serviceContext.setAttribute(
 			"hasAssetDisplayPage",
-			DLAssetDisplayPageUtil.hasAssetDisplayPage(serviceContext));
+			DLAssetDisplayPageUtil.hasAssetDisplayPage(
+				serviceContext, fileEntryId));
 
 		return super.updateFileEntry(
 			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,

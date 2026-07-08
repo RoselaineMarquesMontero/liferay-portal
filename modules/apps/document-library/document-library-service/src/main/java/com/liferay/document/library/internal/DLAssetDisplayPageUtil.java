@@ -6,7 +6,9 @@
 package com.liferay.document.library.internal;
 
 import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -20,6 +22,12 @@ import com.liferay.portal.kernel.util.PortalUtil;
 public class DLAssetDisplayPageUtil {
 
 	public static boolean hasAssetDisplayPage(ServiceContext serviceContext) {
+		return hasAssetDisplayPage(serviceContext, 0);
+	}
+
+	public static boolean hasAssetDisplayPage(
+		ServiceContext serviceContext, long fileEntryId) {
+
 		int displayPageType = ParamUtil.getInteger(
 			serviceContext, "displayPageType",
 			AssetDisplayPageConstants.TYPE_DEFAULT);
@@ -27,7 +35,7 @@ public class DLAssetDisplayPageUtil {
 		if (displayPageType == AssetDisplayPageConstants.TYPE_DEFAULT) {
 			long fileEntryTypeId = ParamUtil.getLong(
 				serviceContext, "fileEntryTypeId",
-				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT);
+				_getFileEntryTypeId(fileEntryId));
 
 			LayoutPageTemplateEntry layoutPageTemplateEntry =
 				LayoutPageTemplateEntryServiceUtil.
@@ -51,6 +59,19 @@ public class DLAssetDisplayPageUtil {
 		}
 
 		return true;
+	}
+
+	private static long _getFileEntryTypeId(long fileEntryId) {
+		if (fileEntryId > 0) {
+			DLFileEntry dlFileEntry =
+				DLFileEntryLocalServiceUtil.fetchDLFileEntry(fileEntryId);
+
+			if (dlFileEntry != null) {
+				return dlFileEntry.getFileEntryTypeId();
+			}
+		}
+
+		return DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;
 	}
 
 }
