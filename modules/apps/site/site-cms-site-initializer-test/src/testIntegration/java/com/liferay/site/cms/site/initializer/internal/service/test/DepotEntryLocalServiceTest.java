@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RepositoryLocalService;
@@ -97,6 +98,23 @@ public class DepotEntryLocalServiceTest {
 			_addStagedDepotEntry(DepotConstants.TYPE_ASSET_LIBRARY), 0);
 		_assertObjectEntryFolders(
 			_addStagedDepotEntry(DepotConstants.TYPE_SPACE), 2);
+	}
+
+	@Test
+	public void testAddDepotEntryWhenPrincipalThreadLocalUserIdIsZero()
+		throws Exception {
+
+		String name = PrincipalThreadLocal.getName();
+
+		PrincipalThreadLocal.setName(null);
+
+		try {
+			_assertObjectEntryFolders(
+				_addDepotEntry(DepotConstants.TYPE_SPACE), 2);
+		}
+		finally {
+			PrincipalThreadLocal.setName(name);
+		}
 	}
 
 	@Test
