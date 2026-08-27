@@ -55,6 +55,20 @@ That writes three artifacts into `<bundles>/osgi/client-extensions`: the site in
 
 Change those two values to provision under a different name or code. Object permissions and the service access policy are applied by the initializer, so there is no manual setup step.
 
+### After the First Install
+
+The initializer creates the object definitions a moment after the OAuth application is registered, so the per object scopes the Spring Boot service needs are not on it yet. Those are `c_forummessage.everything`, `c_forumnotification.everything`, `c_forumsubscription.everything`, `c_forumthread.everything` and `c_forumuser.everything`, and without them every call the service makes to `/o/c/...` answers `403`. Redeploying the service registers them against the objects that now exist:
+
+```bash
+./gradlew :client-extensions:liferay-forums-etc-spring-boot:clean \
+  :client-extensions:liferay-forums-etc-spring-boot:deploy \
+  -Pliferay.workspace.home.dir=<bundles>
+```
+
+Then restart the service process. A service that is already running does not pick up the redeployed registration, and Liferay's calls to it are rejected before they reach the application. Neither side reports anything, so replies and mentions simply record no notification.
+
+Both steps are needed once, on a new installation.
+
 ### Applying a Change to an Existing Site
 
 The initializer creates pages when the site is created. Editing a page or a fragment and redeploying does not retrofit the change onto a site that already exists, so recreate the site to apply it:
