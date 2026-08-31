@@ -1,5 +1,4 @@
 {
-	"objectDefinitionId": "[$OBJECT_DEFINITION_ID:ForumMessage$]",
 	"object-fields": [
 		{
 			"businessType": "Text",
@@ -46,5 +45,6 @@
 			"name": "notificationTopicTitle",
 			"required": false
 		}
-	]
+	],
+	"objectDefinitionId": "[$OBJECT_DEFINITION_ID:ForumMessage$]"
 }
