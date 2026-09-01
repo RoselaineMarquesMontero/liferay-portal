@@ -91,7 +91,11 @@ public class ForumModerationService {
 				"items"
 			);
 
-			return (itemsJSONArray != null) && !itemsJSONArray.isEmpty();
+			if ((itemsJSONArray != null) && !itemsJSONArray.isEmpty()) {
+				return true;
+			}
+
+			return false;
 		}
 		catch (Exception exception) {
 			_log.error(
