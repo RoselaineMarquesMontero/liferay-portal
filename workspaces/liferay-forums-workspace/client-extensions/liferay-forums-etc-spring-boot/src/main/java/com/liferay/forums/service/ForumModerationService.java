@@ -116,7 +116,8 @@ public class ForumModerationService {
 	public boolean isThreadPriorityUnchanged(
 		String externalReferenceCode, double priority, String authToken) {
 
-		if ((externalReferenceCode == null) || externalReferenceCode.isEmpty()) {
+		if ((externalReferenceCode == null) ||
+			externalReferenceCode.isEmpty()) {
 
 			return false;
 		}
@@ -140,7 +141,11 @@ public class ForumModerationService {
 						_encode(externalReferenceCode), "?fields=priority"),
 					authToken));
 
-			return threadJSONObject.optDouble("priority", -1) == priority;
+			if (threadJSONObject.optDouble("priority", -1) == priority) {
+				return true;
+			}
+
+			return false;
 		}
 		catch (Exception exception) {
 
