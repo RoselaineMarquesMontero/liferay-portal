@@ -80,8 +80,7 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 			creatorUserId, _serviceAuthToken());
 
 		if (!allowed && _log.isInfoEnabled()) {
-			_log.info(
-				"Refused a thread priority set by user " + creatorUserId);
+			_log.info("Refused a thread priority set by user " + creatorUserId);
 		}
 
 		return _respond(payloadJSONObject, allowed);
