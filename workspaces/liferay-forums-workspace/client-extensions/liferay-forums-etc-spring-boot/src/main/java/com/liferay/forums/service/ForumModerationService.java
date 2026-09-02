@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ForumModerationService {
+
 	public boolean canAddForumBan(long userId, String authToken) {
 		if (userId <= 0) {
 			return false;
@@ -95,8 +96,10 @@ public class ForumModerationService {
 
 	public boolean isThreadPriorityUnchanged(
 		String externalReferenceCode, double priority, String authToken) {
+
 		if ((externalReferenceCode == null) ||
 			externalReferenceCode.isEmpty()) {
+
 			return false;
 		}
 
@@ -195,6 +198,7 @@ public class ForumModerationService {
 				for (int j = 0; j < actionIdsJSONArray.length(); j++) {
 					if (_ADD_OBJECT_ENTRY_ACTION_ID.equals(
 							actionIdsJSONArray.optString(j))) {
+
 						roleNames.add(
 							permissionJSONObject.optString("roleName", ""));
 
