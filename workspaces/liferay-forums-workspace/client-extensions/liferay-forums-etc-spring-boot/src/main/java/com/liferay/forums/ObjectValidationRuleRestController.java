@@ -30,14 +30,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/object-validation-rule")
 @RestController
 public class ObjectValidationRuleRestController extends BaseRestController {
-
-	// The composer disables its submit button for a banned member, which stops
-	// nothing outside the browser. This runs before the entry is written.
-
 	@PostMapping("/ban")
 	public ResponseEntity<String> ban(
 		@AuthenticationPrincipal Jwt jwt, @RequestBody String json) {
-
 		if (jwt != null) {
 			log(jwt, _log, json);
 		}
@@ -56,14 +51,9 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 		return _respond(payloadJSONObject, !banned);
 	}
 
-	// Priority is offered by the composer only to somebody who may add a ban,
-	// so that is what decides it here too rather than a rule invented for the
-	// server.
-
 	@PostMapping("/priority")
 	public ResponseEntity<String> priority(
 		@AuthenticationPrincipal Jwt jwt, @RequestBody String json) {
-
 		if (jwt != null) {
 			log(jwt, _log, json);
 		}
@@ -81,7 +71,6 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 		if (_forumModerationService.isThreadPriorityUnchanged(
 				payloadJSONObject.optString("externalReferenceCode"), priority,
 				authToken)) {
-
 			return _respond(payloadJSONObject, true);
 		}
 
@@ -110,7 +99,6 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 
 	private ResponseEntity<String> _respond(
 		JSONObject payloadJSONObject, boolean validationCriteriaMet) {
-
 		payloadJSONObject.put("validationCriteriaMet", validationCriteriaMet);
 
 		return new ResponseEntity<>(
