@@ -30,9 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/object-validation-rule")
 @RestController
 public class ObjectValidationRuleRestController extends BaseRestController {
+
 	@PostMapping("/ban")
 	public ResponseEntity<String> ban(
 		@AuthenticationPrincipal Jwt jwt, @RequestBody String json) {
+
 		if (jwt != null) {
 			log(jwt, _log, json);
 		}
@@ -54,6 +56,7 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 	@PostMapping("/priority")
 	public ResponseEntity<String> priority(
 		@AuthenticationPrincipal Jwt jwt, @RequestBody String json) {
+
 		if (jwt != null) {
 			log(jwt, _log, json);
 		}
@@ -71,6 +74,7 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 		if (_forumModerationService.isThreadPriorityUnchanged(
 				payloadJSONObject.optString("externalReferenceCode"), priority,
 				authToken)) {
+
 			return _respond(payloadJSONObject, true);
 		}
 
@@ -99,6 +103,7 @@ public class ObjectValidationRuleRestController extends BaseRestController {
 
 	private ResponseEntity<String> _respond(
 		JSONObject payloadJSONObject, boolean validationCriteriaMet) {
+
 		payloadJSONObject.put("validationCriteriaMet", validationCriteriaMet);
 
 		return new ResponseEntity<>(
