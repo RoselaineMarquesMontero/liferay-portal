@@ -971,6 +971,16 @@ public class BundleSiteInitializer implements SiteInitializer {
 			"/site-initializer/fragments/group", serviceContext,
 			stringUtilReplaceValues);
 
+		Group assetLibraryGroup = _fetchAssetLibraryGroup(
+			"/site-initializer/fragments/asset-libraries", serviceContext);
+
+		if (assetLibraryGroup != null) {
+			_addFragmentEntries(
+				_siteBundle, assetLibraryGroup.getGroupId(),
+				"/site-initializer/fragments/asset-libraries", serviceContext,
+				stringUtilReplaceValues);
+		}
+
 		if (_dialectThemeDetected) {
 			_addFragmentEntries(
 				_siteInitializerExtenderBundle,
@@ -1088,12 +1098,13 @@ public class BundleSiteInitializer implements SiteInitializer {
 	}
 
 	private void _addLayoutPageTemplates(
+			long groupId, String parentResourcePath,
 			ServiceContext serviceContext,
 			Map<String, String> stringUtilReplaceValues)
 		throws Exception {
 
 		Enumeration<URL> enumeration = _siteBundle.findEntries(
-			"/site-initializer/layout-page-templates", StringPool.STAR, true);
+			parentResourcePath, StringPool.STAR, true);
 
 		if (enumeration == null) {
 			return;
@@ -1149,23 +1160,30 @@ public class BundleSiteInitializer implements SiteInitializer {
 				}
 
 				zipWriter.addEntry(
-					_removeFirst(
-						urlPath, "/site-initializer/layout-page-templates"),
-					json);
+					_removeFirst(urlPath, parentResourcePath), json);
 			}
 			else {
 				try (InputStream inputStream = url.openStream()) {
 					zipWriter.addEntry(
-						_removeFirst(
-							urlPath, "/site-initializer/layout-page-templates"),
-						inputStream);
+						_removeFirst(urlPath, parentResourcePath), inputStream);
 				}
 			}
 		}
 
 		_layoutsImporter.importFile(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
-			zipWriter.getFile(), LayoutsImportStrategy.OVERWRITE, true);
+			serviceContext.getUserId(), groupId, zipWriter.getFile(),
+			LayoutsImportStrategy.OVERWRITE, true);
+	}
+
+	private void _addLayoutPageTemplates(
+			ServiceContext serviceContext,
+			Map<String, String> stringUtilReplaceValues)
+		throws Exception {
+
+		_addLayoutPageTemplates(
+			serviceContext.getScopeGroupId(),
+			"/site-initializer/layout-page-templates", serviceContext,
+			stringUtilReplaceValues);
 	}
 
 	private void _addLayoutUtilityPageEntries(
@@ -2144,12 +2162,28 @@ public class BundleSiteInitializer implements SiteInitializer {
 		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 
+			int depotEntryType = _getDepotEntryType(
+				jsonObject.getString("type"));
+
+			if ((depotEntryType == DepotConstants.TYPE_DESIGN_LIBRARY) &&
+				!FeatureFlagManagerUtil.isEnabled(
+					serviceContext.getCompanyId(), "LPD-57283")) {
+
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Skipping design library because the feature flag " +
+							"LPD-57283 is disabled");
+				}
+
+				continue;
+			}
+
 			Group group = _groupLocalService.fetchGroup(
 				serviceContext.getCompanyId(),
 				SiteInitializerUtil.toMap(
 					jsonObject.getString("name_i18n")
 				).get(
-					LocaleUtil.getSiteDefault()
+					LocaleUtil.getDefault()
 				));
 
 			DepotEntry depotEntry = null;
@@ -2160,8 +2194,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 						jsonObject.getString("name_i18n")),
 					SiteInitializerUtil.toMap(
 						jsonObject.getString("description_i18n")),
-					_getDepotEntryType(jsonObject.getString("type")),
-					serviceContext);
+					depotEntryType, serviceContext);
 			}
 
 			UnicodeProperties unicodeProperties = new UnicodeProperties(true);
@@ -4890,11 +4923,13 @@ public class BundleSiteInitializer implements SiteInitializer {
 		}
 	}
 
-	private void _addStyleBookEntries(ServiceContext serviceContext)
+	private void _addStyleBookEntries(
+			long groupId, String parentResourcePath,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		Enumeration<URL> enumeration = _siteBundle.findEntries(
-			"/site-initializer/style-books", StringPool.STAR, true);
+			parentResourcePath, StringPool.STAR, true);
 
 		if (enumeration == null) {
 			return;
@@ -4907,20 +4942,39 @@ public class BundleSiteInitializer implements SiteInitializer {
 
 			String fileName = url.getFile();
 
-			if (fileName.endsWith("/")) {
+			if (fileName.endsWith("/") ||
+				_isOtherScopeResourcePath(fileName, parentResourcePath)) {
+
 				continue;
 			}
 
 			try (InputStream inputStream = url.openStream()) {
 				zipWriter.addEntry(
-					_removeFirst(fileName, "/site-initializer/style-books/"),
+					_removeFirst(fileName, parentResourcePath + "/"),
 					inputStream);
 			}
 		}
 
 		_styleBookEntryZipProcessor.importStyleBookEntries(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
-			zipWriter.getFile(), true);
+			serviceContext.getUserId(), groupId, zipWriter.getFile(), true);
+	}
+
+	private void _addStyleBookEntries(ServiceContext serviceContext)
+		throws Exception {
+
+		_addStyleBookEntries(
+			serviceContext.getScopeGroupId(), "/site-initializer/style-books",
+			serviceContext);
+
+		Group assetLibraryGroup = _fetchAssetLibraryGroup(
+			"/site-initializer/style-books/asset-libraries", serviceContext);
+
+		if (assetLibraryGroup != null) {
+			_addStyleBookEntries(
+				assetLibraryGroup.getGroupId(),
+				"/site-initializer/style-books/asset-libraries",
+				serviceContext);
+		}
 	}
 
 	private void _addTaxonomyCategories(
@@ -5569,7 +5623,9 @@ public class BundleSiteInitializer implements SiteInitializer {
 				addOrUpdateSegmentsEntriesR, addOrUpdateUserGroupsR)
 		).put(
 			addFragmentEntriesR,
-			_dependsOn(addOrUpdateDocumentsR, updateLayoutSetsR)
+			_dependsOn(
+				addOrUpdateDepotEntriesR, addOrUpdateDocumentsR,
+				updateLayoutSetsR)
 		).put(
 			addKeywordsR, _dependsOn(addOrUpdateDepotEntriesR)
 		).put(
@@ -5681,7 +5737,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 		).put(
 			addSiteSettingsR, _dependsOn()
 		).put(
-			addStyleBookEntriesR, _dependsOn()
+			addStyleBookEntriesR, _dependsOn(addOrUpdateDepotEntriesR)
 		).put(
 			addUserAccountsR,
 			_dependsOn(
@@ -5702,6 +5758,39 @@ public class BundleSiteInitializer implements SiteInitializer {
 
 	private List<R> _dependsOn(R... rArray) {
 		return ListUtil.fromArray(rArray);
+	}
+
+	private Group _fetchAssetLibraryGroup(
+			String parentResourcePath, ServiceContext serviceContext)
+		throws Exception {
+
+		String json = SiteInitializerUtil.read(
+			parentResourcePath + ".metadata.json", _servletContext);
+
+		if (json == null) {
+			return null;
+		}
+
+		JSONObject jsonObject = _jsonFactory.createJSONObject(json);
+
+		String assetLibraryName = jsonObject.getString("assetLibraryName");
+
+		if (Validator.isNull(assetLibraryName)) {
+			_log.error(
+				"Unable to read \"assetLibraryName\" from " +
+					parentResourcePath + ".metadata.json");
+
+			return null;
+		}
+
+		Group group = _groupLocalService.fetchGroup(
+			serviceContext.getCompanyId(), assetLibraryName);
+
+		if (group == null) {
+			_log.error("Unable to get asset library " + assetLibraryName);
+		}
+
+		return group;
 	}
 
 	private com.liferay.object.model.ObjectDefinition _fetchObjectDefinition(
@@ -5792,13 +5881,18 @@ public class BundleSiteInitializer implements SiteInitializer {
 
 			return DepotConstants.TYPE_ASSET_LIBRARY;
 		}
+		else if (StringUtil.equalsIgnoreCase(
+					assetLibraryTypeString, "DesignLibrary")) {
+
+			return DepotConstants.TYPE_DESIGN_LIBRARY;
+		}
 		else if (StringUtil.equalsIgnoreCase(assetLibraryTypeString, "Space")) {
 			return DepotConstants.TYPE_SPACE;
 		}
 
 		throw new IllegalArgumentException(
 			"Asset library type " + assetLibraryTypeString +
-				" must be \"AssetLibrary\" or \"Space\"");
+				" must be \"AssetLibrary\", \"DesignLibrary\", or \"Space\"");
 	}
 
 	private Serializable _getExpandoAttributeValue(JSONObject jsonObject)
@@ -6018,6 +6112,16 @@ public class BundleSiteInitializer implements SiteInitializer {
 		}
 
 		_updateGroupSiteInitializerKey(groupId);
+	}
+
+	private boolean _isOtherScopeResourcePath(
+		String fileName, String parentResourcePath) {
+
+		if (parentResourcePath.endsWith("/asset-libraries")) {
+			return false;
+		}
+
+		return fileName.contains("/asset-libraries/");
 	}
 
 	private void _publishObjectDefinitions(
