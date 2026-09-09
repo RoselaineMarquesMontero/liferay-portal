@@ -86,6 +86,14 @@
 	width: 96px;
 }
 
+/* Pins the options kebab to the top right corner of the card, in line with
+   the avatar rather than sinking to the vertical center of the whole row. */
+.forums-message-card__options-col {
+	align-self: flex-start;
+	flex-shrink: 0;
+	margin-left: 0.5rem;
+}
+
 .forums-message-card__username {
 	font-size: 0.8125rem;
 	font-weight: 600;
@@ -139,6 +147,29 @@
 	background-color: var(--secondary-l3, #e7e7ed);
 	border-color: var(--secondary-l3, #e7e7ed);
 	color: var(--dark-d2, #111116);
+}
+
+.forums-message-card__tag--clickable {
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.forums-message-card__tag--clickable:hover {
+	background-color: var(--secondary-l2, #d6d6e0);
+	border-color: var(--secondary-l2, #d6d6e0);
+	color: var(--dark-d2, #111116);
+}
+
+.forums-message-card__tag--active {
+	background-color: var(--primary, #4B4EFC);
+	border-color: var(--primary, #4B4EFC);
+	color: var(--light, #fff);
+}
+
+.forums-message-card__tag--active:hover {
+	background-color: var(--primary-d1, #3f42d6);
+	border-color: var(--primary-d1, #3f42d6);
+	color: var(--light, #fff);
 }
 
 .forums-message-card__meta {

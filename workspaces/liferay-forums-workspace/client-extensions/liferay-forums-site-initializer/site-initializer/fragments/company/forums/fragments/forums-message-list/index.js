@@ -22,20 +22,26 @@ function categoryQuery(dataset) {
 
 if (messageList) {
 	const portalURL = Liferay.ThemeDisplay.getPortalURL();
-	const scopeGroupId = Liferay.ThemeDisplay.getScopeGroupId();
-	const pathFriendlyURLPublic =
-		Liferay.ThemeDisplay.getPathFriendlyURLPublic();
-	let sitePrefix = '';
-	if (pathFriendlyURLPublic) {
-		const pubPath = pathFriendlyURLPublic + '/';
-		const {pathname} = window.location;
-		if (pathname.indexOf(pubPath) === 0) {
-			const rest = pathname.substring(pubPath.length);
-			const slugEnd = rest.indexOf('/');
-			const siteSlug = slugEnd === -1 ? rest : rest.substring(0, slugEnd);
-			sitePrefix = pathFriendlyURLPublic + '/' + siteSlug;
-		}
-	}
+    const scopeGroupId = Liferay.ThemeDisplay.getScopeGroupId();
+    const pathFriendlyURLPublic = Liferay.ThemeDisplay.getPathFriendlyURLPublic();
+    let sitePrefix = '';
+
+    if (pathFriendlyURLPublic) {
+    	const pubPath = pathFriendlyURLPublic + '/';
+
+    	const {pathname} = window.location;
+    	const localeMatch = pathname.match(/^\/[a-zA-Z]{2}(?:-[a-zA-Z]{2})?(?=\/)/);
+    	const localePrefix = localeMatch ? localeMatch[0] : '';
+    	const pathAfterLocale = pathname.substring(localePrefix.length);
+
+    	if (pathAfterLocale.indexOf(pubPath) === 0) {
+    		const rest = pathAfterLocale.substring(pubPath.length);
+    		const slugEnd = rest.indexOf('/');
+    		const siteSlug = slugEnd === -1 ? rest : rest.substring(0, slugEnd);
+
+    		sitePrefix = pathFriendlyURLPublic + '/' + siteSlug;
+    	}
+    }
 	const headers = {
 		'Accept': 'application/json',
 		'Content-Type': 'application/json',
@@ -61,8 +67,14 @@ if (messageList) {
 	const pageSize = 20;
 	let categoryId = null;
 	let searchQuery = '';
+	let tagFilter = null;
 	const currentUserId = Liferay.ThemeDisplay.getUserId();
 	let isBanned = false;
+
+	/* Whether the current user may lock/unlock a topic. Gated the same way
+	   the moderation page detects moderators: the HATEOAS create action on
+	   the ForumBan collection, which regular users are never granted. */
+	let isModerator = false;
 
 	/* DOM refs */
 	const cardsContainer = messageList.querySelector('#forumsMessageListCards');
@@ -123,10 +135,84 @@ if (messageList) {
 	const MAX_DEPTH = 1;
 	let categoryTree = null;
 
+	/* Card options dropdown (delegated: cards are re-rendered on every
+	   load/page/sort, so we bind once on the fragment root). The menu is
+	   positioned `fixed` while open so an ancestor's overflow:hidden (the
+	   cards grid) cannot clip it. Mirrors the reply-options dropdown on the
+	   message detail page. */
+	const closeCardOptionMenus = function (except) {
+		messageList
+			.querySelectorAll(
+				'.forums-message-card__options .dropdown-menu.show'
+			)
+			.forEach((menu) => {
+				if (menu === except) {
+					return;
+				}
+				menu.classList.remove('show');
+				menu.style.position = '';
+				menu.style.top = '';
+				menu.style.left = '';
+				menu.style.right = '';
+				menu.style.zIndex = '';
+				const toggle = menu.previousElementSibling;
+				if (toggle) {
+					toggle.setAttribute('aria-expanded', 'false');
+				}
+			});
+	};
+	messageList.addEventListener('click', (event) => {
+		const toggle = event.target.closest(
+			'[id^="forumsListOptions_"]'
+		);
+		if (!toggle) {
+			return;
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		const menu = toggle.nextElementSibling;
+		if (!menu || !menu.classList.contains('dropdown-menu')) {
+			return;
+		}
+		const willOpen = !menu.classList.contains('show');
+		closeCardOptionMenus(menu);
+		if (willOpen) {
+			const {bottom, right} = toggle.getBoundingClientRect();
+			menu.style.position = 'fixed';
+			menu.style.top = Math.round(bottom + 2) + 'px';
+			menu.style.left = 'auto';
+			menu.style.right = Math.round(window.innerWidth - right) + 'px';
+			menu.style.zIndex = '1050';
+		}
+		menu.classList.toggle('show', willOpen);
+		toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+	});
+	document.addEventListener('click', (event) => {
+		if (!event.target.closest('.forums-message-card__options')) {
+			closeCardOptionMenus(null);
+		}
+	});
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape') {
+			closeCardOptionMenus(null);
+		}
+	});
+	window.addEventListener(
+		'scroll',
+		() => {
+			closeCardOptionMenus(null);
+		},
+		true
+	);
+	window.addEventListener('resize', () => {
+		closeCardOptionMenus(null);
+	});
+
 	/* Read URL params */
 	const urlParams = new URLSearchParams(window.location.search);
 	categoryId = urlParams.get('categoryId');
 	searchQuery = urlParams.get('q') || '';
+	tagFilter = urlParams.get('tag') || null;
 	if (searchInput && searchQuery) {
 		searchInput.value = searchQuery;
 	}
@@ -271,6 +357,66 @@ if (messageList) {
 		);
 	};
 
+	/* Per-card options menu (kebab dropdown), mirroring the options dropdown
+	   on the message detail page instead of loose action buttons. Renders
+	   nothing when the viewer has neither a delete action nor moderator
+	   lock/unlock capability. */
+	const cardOptionsMenu = function (msg, locked, actions) {
+		const canDelete = !!(actions && actions['delete']);
+		if (!isModerator && !canDelete) {
+			return '';
+		}
+
+		const optionsLabel = Liferay.Util.escapeHTML(
+			messageList.dataset.labelOptions || 'Options'
+		);
+		const lockLabel = Liferay.Util.escapeHTML(
+			locked
+				? messageList.dataset.labelUnlockTopic || 'Unlock Topic'
+				: messageList.dataset.labelLockTopic || 'Lock Topic'
+		);
+		const deleteLabel = Liferay.Util.escapeHTML(
+			messageList.dataset.labelDeleteTopic ||
+				messageList.dataset.labelDelete ||
+				'Delete Topic'
+		);
+		const toggleId = 'forumsListOptions_' + msg.id;
+
+		return (
+			'<div class="dropdown forums-message-card__options">' +
+			'<button class="btn btn-monospaced btn-sm btn-outline-borderless btn-outline-secondary dropdown-toggle" type="button" id="' +
+			toggleId +
+			'" aria-haspopup="true" aria-expanded="false" aria-label="' +
+			optionsLabel +
+			'" title="' +
+			optionsLabel +
+			'"><svg class="lexicon-icon lexicon-icon-ellipsis-v" role="presentation"><use href="' +
+			clayIconsUrl +
+			'#ellipsis-v"></use></svg></button>' +
+			'<div class="dropdown-menu dropdown-menu-right" aria-labelledby="' +
+			toggleId +
+			'">' +
+			(isModerator
+				? '<a class="dropdown-item forums-list-lock-toggle-btn" href="#" data-thread-id="' +
+					msg.id +
+					'" data-locked="' +
+					(locked ? 'true' : 'false') +
+					'">' +
+					lockLabel +
+					'</a>'
+				: '') +
+			(canDelete
+				? '<a class="dropdown-item text-danger forums-list-delete-btn" href="#" data-delete-url="' +
+					actions['delete'].href +
+					'">' +
+					deleteLabel +
+					'</a>'
+				: '') +
+			'</div>' +
+			'</div>'
+		);
+	};
+
 	/* --- Category hierarchy -------------------------------------------- */
 
 	const getParentId = function (cat) {
@@ -280,6 +426,19 @@ if (messageList) {
 	/* Link to another category on this same page */
 	const categoryHref = function (id) {
 		return window.location.pathname + '?categoryId=' + id;
+	};
+
+	/* Link that reapplies the current category (if selected) together with
+	   this tag, so a tag click composes with — rather than replaces — an
+	   active category filter. */
+	const tagHref = function (tag) {
+		const params = new URLSearchParams(window.location.search);
+		if (categoryId) {
+			params.set('categoryId', categoryId);
+		}
+		params.set('tag', tag);
+
+		return window.location.pathname + '?' + params.toString();
 	};
 
 	/* Build {byId, childrenOf} from a flat list. Anything deeper than
@@ -610,6 +769,43 @@ if (messageList) {
 		});
 	}
 
+	/* Tag click handler (delegated: tags are re-rendered on every load). A
+	   click on the active tag clears it; a click on any other tag replaces
+	   it. The current category filter, if any, is preserved. */
+	messageList.addEventListener('click', (event) => {
+		const tagEl = event.target.closest(
+			'.forums-message-card__tag--clickable'
+		);
+		if (!tagEl) {
+			return;
+		}
+		event.preventDefault();
+
+		const tag = tagEl.dataset.tag;
+		if (!tag) {
+			return;
+		}
+
+		tagFilter = tagFilter === tag ? null : tag;
+		currentPage = 1;
+
+		const params = new URLSearchParams(window.location.search);
+		if (tagFilter) {
+			params.set('tag', tagFilter);
+		}
+		else {
+			params.delete('tag');
+		}
+		history.pushState(
+			null,
+			'',
+			window.location.pathname +
+				(params.toString() ? '?' + params.toString() : '')
+		);
+
+		loadMessages();
+	});
+
 	/* Load messages */
 	const loadMessages = function () {
 		cardsContainer
@@ -644,6 +840,11 @@ if (messageList) {
 		if (categoryId) {
 			filterParts.push(
 				"r_categoryThreads_c_forumCategoryId eq '" + categoryId + "'"
+			);
+		}
+		if (tagFilter) {
+			filterParts.push(
+				"keywords in ('" + tagFilter.replace(/'/g, "''") + "')"
 			);
 		}
 
@@ -810,6 +1011,7 @@ if (messageList) {
 							dateCreated,
 							friendlyUrlPath,
 							keywords,
+							locked,
 							messageTitle,
 							priority,
 							question,
@@ -923,6 +1125,19 @@ if (messageList) {
 								'</span>';
 						}
 
+						let lockedBadge = '';
+						if (locked) {
+							const lockedText = Liferay.Util.escapeHTML(
+								messageList.dataset.labelLocked || 'Locked'
+							);
+							lockedBadge =
+								'<div class="forums-message-card__solved text-secondary small mt-2"><svg class="lexicon-icon lexicon-icon-lock" role="presentation"><use href="' +
+								clayIconsUrl +
+								'#lock"></use></svg> ' +
+								lockedText +
+								'</div>';
+						}
+
 						html +=
 							'<div class="card forums-message-card">' +
 							'<div class="card-body">' +
@@ -959,10 +1174,19 @@ if (messageList) {
 								let tHtml =
 									'<div class="forums-message-card__tags">';
 								messageTags.forEach((tag) => {
+									const isActive = tagFilter === tag;
 									tHtml +=
-										'<span class="label label-lg forums-message-card__tag"><span class="label-item label-item-expand">' +
+										'<a href="' +
+										Liferay.Util.escapeHTML(tagHref(tag)) +
+										'" class="label label-lg forums-message-card__tag forums-message-card__tag--clickable' +
+										(isActive
+											? ' forums-message-card__tag--active'
+											: '') +
+										'" data-tag="' +
 										Liferay.Util.escapeHTML(tag) +
-										'</span></span>';
+										'"><span class="label-item label-item-expand">' +
+										Liferay.Util.escapeHTML(tag) +
+										'</span></a>';
 								});
 								tHtml += '</div>';
 
@@ -998,21 +1222,22 @@ if (messageList) {
 							' ' +
 							(viewCount || 0) +
 							'</span>' +
-							(actions && actions['delete']
-								? '<span class="forums-message-card__meta-item ml-auto"><button class="btn btn-monospaced btn-sm btn-outline-danger forums-list-delete-btn" data-delete-url="' +
-									actions['delete'].href +
-									'" title="' +
-									(messageList.dataset.labelDelete ||
-										'Delete') +
-									'" aria-label="' +
-									(messageList.dataset.labelDelete ||
-										'Delete') +
-									'"><svg class="lexicon-icon lexicon-icon-trash" role="presentation"><use href="' +
-									clayIconsUrl +
-									'#trash"></use></svg></button></span>'
-								: '') +
 							'</div>' +
+							lockedBadge +
 							'</div>' +
+							(function () {
+								const optionsMenuHtml = cardOptionsMenu(
+									msg,
+									locked,
+									actions
+								);
+
+								return optionsMenuHtml
+									? '<div class="autofit-col forums-message-card__options-col">' +
+										optionsMenuHtml +
+										'</div>'
+									: '';
+							})() +
 							'</div>' +
 							'</div>' +
 							'</div>';
@@ -1022,6 +1247,7 @@ if (messageList) {
 
 					cardsContainer.innerHTML = html;
 					attachDeleteHandlers();
+					attachLockToggleHandlers();
 
 					if (
 						missingDisplayPage &&
@@ -1173,7 +1399,7 @@ if (messageList) {
 	/* Delete Modal Setup */
 	let deleteModalObj = null;
 
-	const showDeleteModal = function (title, message, onConfirm) {
+	const showDeleteModal = function (title, message, onConfirm, confirmLabel) {
 		let modal = document.getElementById('forumsDeleteModal');
 		if (!modal) {
 			modal = document.createElement('div');
@@ -1255,6 +1481,8 @@ if (messageList) {
 
 		modal.querySelector('#forumsDeleteModalHeading').textContent = title;
 		modal.querySelector('#forumsDeleteModalBody').textContent = message;
+		modal.querySelector('#forumsDeleteModalConfirmBtn').textContent =
+			confirmLabel || messageList.dataset.labelDelete || 'Delete';
 
 		deleteModalObj = {
 			onCancel: null,
@@ -1284,6 +1512,8 @@ if (messageList) {
 					const deleteUrl = this.dataset.deleteUrl;
 					const card = this.closest('.forums-message-card');
 
+					closeCardOptionMenus(null);
+
 					showDeleteModal(title, confirmMsg, () => {
 						Liferay.Util.fetch(deleteUrl, {
 							headers,
@@ -1307,6 +1537,68 @@ if (messageList) {
 								console.error('Delete topic error:', error);
 							});
 					});
+				});
+			});
+	};
+
+	const attachLockToggleHandlers = function () {
+		messageList
+			.querySelectorAll('.forums-list-lock-toggle-btn')
+			.forEach((button) => {
+				button.addEventListener('click', function (event) {
+					event.preventDefault();
+					event.stopPropagation();
+
+					const threadId = this.dataset.threadId;
+					const newLocked = this.dataset.locked !== 'true';
+					const linkEl = this;
+
+					closeCardOptionMenus(null);
+
+					const doToggle = function () {
+						linkEl.style.pointerEvents = 'none';
+						Liferay.Util.fetch(
+							portalURL + '/o/c/forumthreads/' + threadId,
+							{
+								body: JSON.stringify({locked: newLocked}),
+								headers,
+								method: 'PATCH',
+							}
+						)
+							.then((r) => {
+								if (r.ok) {
+									loadMessages();
+								}
+								else {
+									linkEl.style.pointerEvents = '';
+									console.error(
+										'Failed to update the lock state of thread ' +
+											threadId
+									);
+								}
+							})
+							.catch((error) => {
+								linkEl.style.pointerEvents = '';
+								console.error(
+									'Error updating thread lock state:',
+									error
+								);
+							});
+					};
+
+					if (newLocked) {
+						showDeleteModal(
+							messageList.dataset.labelLockTopic ||
+								'Lock Topic',
+							messageList.dataset.labelConfirmLockTopic ||
+								'Locking a topic prevents anyone from replying to it or editing its messages until it is unlocked.',
+							doToggle,
+							messageList.dataset.labelLockTopic || 'Lock Topic'
+						);
+					}
+					else {
+						doToggle();
+					}
 				});
 			});
 	};
@@ -1368,6 +1660,15 @@ if (messageList) {
 				if (data.items && !!data.items.length) {
 					isBanned = true;
 				}
+				const {actions} = data;
+				isModerator =
+					!isBanned &&
+					!!(
+						actions &&
+						(actions['create'] ||
+							actions['post'] ||
+							actions['POST'])
+					);
 				loadMessages();
 			})
 			.catch((error) => {

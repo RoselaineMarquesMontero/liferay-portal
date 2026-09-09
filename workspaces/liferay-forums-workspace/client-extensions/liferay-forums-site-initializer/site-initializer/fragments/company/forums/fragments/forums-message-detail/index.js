@@ -200,9 +200,16 @@ if (messageDetail) {
 	const urlParams = new URLSearchParams(window.location.search);
 	let messageId = urlParams.get('messageId');
 
-	/* Options Dropdown Vanilla JS Fallback */
+	/* Options Dropdown Vanilla JS Fallback. */
 	const optionsBtn = messageDetail.querySelector('#forumsDetailOptions');
-	if (optionsBtn && Liferay.ThemeDisplay.isSignedIn()) {
+
+	/* Whether the options dropdown (Edit/Lock/Subscribe/Delete) is shown at
+	   all for this visitor — signed-out visitors never get it. Anything else
+	   gated on "can this visitor act on the topic", like the locked banner,
+	   reuses this same flag rather than re-deriving its own. */
+	const showOptions = !!(optionsBtn && Liferay.ThemeDisplay.isSignedIn());
+
+	if (showOptions) {
 		const optionsDropdown = messageDetail.querySelector(
 			'#forumsDetailOptionsDropdown'
 		);
@@ -334,6 +341,24 @@ if (messageDetail) {
 		let currentReplyPage = 1;
 		let newViewCount = 0;
 		let isBanned = false;
+
+		/* Whether the current user may lock/unlock this topic. Gated the same
+		   way the moderation page detects moderators: the HATEOAS create action
+		   on the ForumBan collection, which regular users are never granted. */
+		let isModerator = false;
+
+		/* Whether the current user may create a new thread — the same HATEOAS
+		   create action the New Discussion button (forums-hero /
+		   forums-message-list) checks on the ForumThreads collection. Drives
+		   visibility of the "Duplicate Topic" option, which posts a copy of
+		   this topic as a brand-new thread. */
+		let canCreateThread = false;
+
+		/* Whether replies/edits are currently blocked on this topic. Set from
+		   the thread's own "locked" field once it loads; the server enforces
+		   this authoritatively via the ForumMessage lock validation rule — this
+		   flag only drives which write actions are shown/hidden. */
+		let isThreadLocked = false;
 
 		/* Utility functions */
 		function indentHtmlText(text) {
@@ -656,7 +681,7 @@ if (messageDetail) {
 					<div class="forums-message-detail__reply-body">${body}</div>
 					${renderAttachments(msg)}
 					<div class="forums-message-detail__reply-actions">
-						${canReply ? `<button class="btn btn-outline-primary btn-sm" type="button" data-forums-compose data-forums-reply data-forums-message-id="${r_threadMessages_c_forumThreadId}" data-forums-parent-id="${id}">${messageDetail.dataset.labelReply || 'Reply'}</button>` : ''}
+						${canReply && !isThreadLocked ? `<button class="btn btn-outline-primary btn-sm" type="button" data-forums-compose data-forums-reply data-forums-message-id="${r_threadMessages_c_forumThreadId}" data-forums-parent-id="${id}">${messageDetail.dataset.labelReply || 'Reply'}</button>` : ''}
 						${
 							hasOptions
 								? `<div class="dropdown forums-message-detail__reply-options">
@@ -664,7 +689,7 @@ if (messageDetail) {
 								<svg class="lexicon-icon lexicon-icon-ellipsis-v" role="presentation"><use href="${clayIconsUrl}#ellipsis-v"></use></svg>
 							</button>
 							<div class="dropdown-menu dropdown-menu-right" aria-labelledby="forumsReplyOptions_${id}">
-								${hasEditAction ? `<a class="dropdown-item forums-edit-reply-btn" href="#" data-message-id="${id}">${messageDetail.dataset.labelEditReply || 'Edit Reply'}</a>` : ''}
+								${hasEditAction && !isThreadLocked ? `<a class="dropdown-item forums-edit-reply-btn" href="#" data-message-id="${id}">${messageDetail.dataset.labelEditReply || 'Edit Reply'}</a>` : ''}
 								${hasDeleteAction ? `<a class="dropdown-item text-danger forums-delete-btn" href="#" data-delete-url="${actions['delete'].href}">${messageDetail.dataset.labelDeleteReply || 'Delete Reply'}</a>` : ''}
 							</div>
 						</div>`
@@ -1177,7 +1202,7 @@ if (messageDetail) {
 		/* Delete Modal Setup */
 		let deleteModalObj = null;
 
-		function showDeleteModal(title, message, onConfirm) {
+		function showDeleteModal(title, message, onConfirm, confirmLabel) {
 			let modal = document.getElementById('forumsDeleteModal');
 			if (!modal) {
 				modal = document.createElement('div');
@@ -1255,6 +1280,8 @@ if (messageDetail) {
 			modal.querySelector('#forumsDeleteModalHeading').textContent =
 				title;
 			modal.querySelector('#forumsDeleteModalBody').textContent = message;
+			modal.querySelector('#forumsDeleteModalConfirmBtn').textContent =
+				confirmLabel || messageDetail.dataset.labelDelete || 'Delete';
 
 			deleteModalObj = {
 				onCancel: null,
@@ -1460,6 +1487,40 @@ if (messageDetail) {
 				});
 		}
 
+		/* Show/hide the "locked" notice above the title. Re-run after a
+		   lock/unlock toggle, in addition to the initial load, so the banner
+		   never depends on a full page reload. */
+		function updateLockedBanner() {
+			let lockedBanner = messageDetail.querySelector(
+				'.forums-message-detail__locked-banner'
+			);
+
+			if (!isThreadLocked || !showOptions) {
+				if (lockedBanner) {
+					lockedBanner.remove();
+				}
+
+				return;
+			}
+
+			if (lockedBanner) {
+				return;
+			}
+
+			lockedBanner = document.createElement('div');
+			lockedBanner.className =
+				'alert alert-warning forums-message-detail__locked-banner mt-3';
+			lockedBanner.setAttribute('role', 'alert');
+			lockedBanner.innerHTML = `<span class="alert-indicator"><svg class="lexicon-icon lexicon-icon-lock" role="presentation"><use href="${clayIconsUrl}#lock"></use></svg></span><strong class="lead">${Liferay.Util.escapeHTML(messageDetail.dataset.labelLocked || 'Locked')}: </strong>${Liferay.Util.escapeHTML(messageDetail.dataset.labelLockedWarning || 'This topic is locked. New replies and edits are not allowed.')}`;
+
+			const titleRow = messageDetail.querySelector(
+				'.forums-message-detail__title-row'
+			);
+			if (titleRow) {
+				titleRow.parentNode.insertBefore(lockedBanner, titleRow);
+			}
+		}
+
 		/* Load message data */
 		function initMessageDetail() {
 			if (isBanned) {
@@ -1502,6 +1563,7 @@ if (messageDetail) {
 					const {
 						actions,
 						keywords,
+						locked,
 						messageTitle,
 						priority,
 						question,
@@ -1509,6 +1571,9 @@ if (messageDetail) {
 						threadSuspiciousActivities,
 						viewCount,
 					} = msg;
+
+					isThreadLocked = !!locked;
+					updateLockedBanner();
 
 					if (actions && actions['delete']) {
 						messageDeleteUrl = actions['delete'].href;
@@ -1706,6 +1771,127 @@ if (messageDetail) {
 							});
 					}
 
+					/* Lock/Unlock topic — moderator only. Toggles the thread's
+					   "locked" field; the ForumMessage lock validation rule
+					   enforces the restriction server side regardless of what
+					   this UI shows. */
+					let lockBtn = messageDetail.querySelector(
+						'#forumsDetailLockBtn'
+					);
+
+					if (lockBtn && isModerator) {
+						function renderLockLabel(button) {
+							button.textContent = isThreadLocked
+								? messageDetail.dataset.labelUnlockTopic ||
+									'Unlock Topic'
+								: messageDetail.dataset.labelLockTopic ||
+									'Lock Topic';
+						}
+
+						renderLockLabel(lockBtn);
+						lockBtn.style.display = '';
+
+						const newLockBtn = lockBtn.cloneNode(true);
+						lockBtn.parentNode.replaceChild(newLockBtn, lockBtn);
+						lockBtn = newLockBtn;
+
+						lockBtn.addEventListener('click', function (event) {
+							event.preventDefault();
+
+							const newLocked = !isThreadLocked;
+							const button = this;
+
+							const doToggle = function () {
+								button.style.pointerEvents = 'none';
+
+								Liferay.Util.fetch(
+									portalURL +
+										'/o/c/forumthreads/' +
+										messageId,
+									{
+										body: JSON.stringify({
+											locked: newLocked,
+										}),
+										headers,
+										method: 'PATCH',
+									}
+								)
+									.then((r) => {
+										if (!r.ok) {
+											throw new Error(
+												'HTTP ' + r.status
+											);
+										}
+
+										isThreadLocked = newLocked;
+										renderLockLabel(button);
+										updateLockedBanner();
+
+										const optionsMenu = button.closest(
+											'.dropdown-menu'
+										);
+										if (optionsMenu) {
+											optionsMenu.classList.remove(
+												'show'
+											);
+										}
+
+										loadMessages();
+
+										if (
+											Liferay.Util &&
+											Liferay.Util.openToast
+										) {
+											const toastMsg = isThreadLocked
+												? messageDetail.dataset
+														.labelTopicLockedToast ||
+													'This topic has been locked.'
+												: messageDetail.dataset
+														.labelTopicUnlockedToast ||
+													'This topic has been unlocked.';
+											Liferay.Util.openToast({
+												message:
+													Liferay.Util.escapeHTML(
+														toastMsg
+													),
+												title: Liferay.Util.escapeHTML(
+													messageDetail.dataset
+														.labelSuccess ||
+														'Success'
+												),
+												type: 'success',
+											});
+										}
+									})
+									.catch((error) => {
+										console.error(
+											'Error updating thread lock state:',
+											error
+										);
+									})
+									.finally(() => {
+										button.style.pointerEvents = '';
+									});
+							};
+
+							if (newLocked) {
+								showDeleteModal(
+									messageDetail.dataset.labelLockTopic ||
+										'Lock Topic',
+									messageDetail.dataset
+										.labelConfirmLockTopic ||
+										'Locking a topic prevents anyone from replying to it or editing its messages until it is unlocked.',
+									doToggle,
+									messageDetail.dataset.labelLockTopic ||
+										'Lock Topic'
+								);
+							}
+							else {
+								doToggle();
+							}
+						});
+					}
+
 					/* Increment viewCount via REST PATCH (unique per session) */
 					let currentViewCount = viewCount;
 					currentViewCount = currentViewCount || 0;
@@ -1893,6 +2079,23 @@ if (messageDetail) {
 								return r.json();
 							})
 							.then((data) => {
+
+								/* HATEOAS: only show "Flag Message" when the
+								   forumsuspiciousactivities API confirms this
+								   user is allowed to create one. */
+								const canCreateFlag =
+									!isBanned &&
+									!!(
+										data.actions &&
+										(data.actions['create'] ||
+											data.actions['post'] ||
+											data.actions['POST'])
+									);
+
+								flagBtn.style.display = canCreateFlag
+									? ''
+									: 'none';
+
 								const items = data.items || [];
 								const [firstFlag] = items;
 								if (firstFlag) {
@@ -1980,21 +2183,23 @@ if (messageDetail) {
 						});
 					}
 
-					/* HATEOAS: check if this user can create messages (reply) */
-					if (
+					/* HATEOAS: check if this user can create messages (reply).
+					   A locked topic blocks replies for everyone, moderators
+					   included, until it is unlocked — same restriction the
+					   server enforces via the ForumMessage lock validation
+					   rule. Flagging visibility is driven separately by the
+					   forumsuspiciousactivities HATEOAS check and is
+					   unaffected by the lock. */
+					const canCreateMessage = !!(
 						!isBanned &&
 						data.actions &&
 						(data.actions['POST'] ||
 							data.actions['post'] ||
 							data.actions['create'])
-					) {
-						canReply = true;
-						if (replyBtn) {
-							replyBtn.style.display = '';
-						}
-						if (flagBtn) {
-							flagBtn.style.display = '';
-						}
+					);
+					canReply = canCreateMessage && !isThreadLocked;
+					if (replyBtn) {
+						replyBtn.style.display = canReply ? '' : 'none';
 					}
 
 					/* Fetch user votes FIRST, then render everything */
@@ -2177,7 +2382,11 @@ if (messageDetail) {
 							const dropdownEditBtn = messageDetail.querySelector(
 								'#forumsDetailEditBtn'
 							);
-							if (dropdownEditBtn && canUpdateMessage) {
+							if (
+								dropdownEditBtn &&
+								canUpdateMessage &&
+								!isThreadLocked
+							) {
 								dropdownEditBtn.style.display = '';
 
 								/* Clone to clear any prior click handler from previous loadMessages. */
@@ -2207,6 +2416,52 @@ if (messageDetail) {
 										}
 									}
 								);
+							}
+							else if (dropdownEditBtn) {
+								dropdownEditBtn.style.display = 'none';
+							}
+
+							/* Duplicate Topic: opens the shared composer in
+					   plain "new topic" mode (no threadId/editMode), prefilled
+					   with a copy of this topic's content, so the visitor can
+					   review/edit before posting it as a brand-new thread.
+					   Gated on the same "may I create a thread" HATEOAS check
+					   the New Discussion button uses (canCreateThread) rather
+					   than on ownership of this topic — anyone who can start a
+					   new discussion may duplicate one. */
+							const dropdownDuplicateBtn =
+								messageDetail.querySelector(
+									'#forumsDetailDuplicateBtn'
+								);
+							if (dropdownDuplicateBtn && canCreateThread) {
+								dropdownDuplicateBtn.style.display = '';
+
+								const newDropdownDuplicateBtn =
+									dropdownDuplicateBtn.cloneNode(true);
+								dropdownDuplicateBtn.parentNode.replaceChild(
+									newDropdownDuplicateBtn,
+									dropdownDuplicateBtn
+								);
+								newDropdownDuplicateBtn.addEventListener(
+									'click',
+									(event) => {
+										event.preventDefault();
+										if (window.forumsOpenComposeModal) {
+											window.forumsOpenComposeModal({
+												body: opMsgBody,
+												categoryId: messageCategoryFK,
+												duplicate: true,
+												isQuestion: isMessageQuestion,
+												priority: messagePriority,
+												subject: messageTitleText,
+												tags: messageTagsArray,
+											});
+										}
+									}
+								);
+							}
+							else if (dropdownDuplicateBtn) {
+								dropdownDuplicateBtn.style.display = 'none';
 							}
 
 							const dropdownDeleteBtn =
@@ -2791,7 +3046,7 @@ if (messageDetail) {
 		}
 
 		if (Liferay.ThemeDisplay.isSignedIn()) {
-			Liferay.Util.fetch(
+			const banStatusPromise = Liferay.Util.fetch(
 				portalURL +
 					'/o/c/forumbans/scopes/' +
 					scopeGroupId +
@@ -2806,16 +3061,59 @@ if (messageDetail) {
 				.then((r) => {
 					return r.json();
 				})
-				.then((data) => {
-					if (data.items && !!data.items.length) {
-						isBanned = true;
-					}
-					initMessageDetail();
-				})
 				.catch((error) => {
 					console.error('Error checking ban status', error);
-					initMessageDetail();
+
+					return {};
 				});
+
+			/* Same HATEOAS check the New Discussion button uses — resolved up
+			   front, in parallel, so it is ready by the time the OP renders
+			   and decides whether to show "Duplicate Topic". */
+			const canCreateThreadPromise = Liferay.Util.fetch(
+				portalURL +
+					'/o/c/forumthreads/scopes/' +
+					scopeGroupId +
+					'?page=1&pageSize=1',
+				{
+					headers,
+					method: 'GET',
+				}
+			)
+				.then((r) => {
+					return r.json();
+				})
+				.catch(() => {
+					return {};
+				});
+
+			Promise.all([banStatusPromise, canCreateThreadPromise]).then(
+				([banData, threadData]) => {
+					if (banData.items && !!banData.items.length) {
+						isBanned = true;
+					}
+					const {actions} = banData;
+					isModerator =
+						!isBanned &&
+						!!(
+							actions &&
+							(actions['create'] ||
+								actions['post'] ||
+								actions['POST'])
+						);
+
+					const threadActions = threadData && threadData.actions;
+					canCreateThread =
+						!isBanned &&
+						!!(
+							threadActions &&
+							(threadActions['post'] ||
+								threadActions['create'])
+						);
+
+					initMessageDetail();
+				}
+			);
 		}
 		else {
 			initMessageDetail();
