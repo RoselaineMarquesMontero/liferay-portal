@@ -687,15 +687,15 @@ public class LayoutUtil {
 	}
 
 	private static void _checkNotLocked(Layout layout) throws Exception {
-		long livePlid = layout.getPlid();
+		long plid = layout.getPlid();
 
 		if (layout.isDraftLayout()) {
-			livePlid = layout.getClassPK();
+			plid = layout.getClassPK();
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			LayoutPageTemplateEntryLocalServiceUtil.
-				fetchLayoutPageTemplateEntryByPlid(livePlid);
+				fetchLayoutPageTemplateEntryByPlid(plid);
 
 		if (layoutPageTemplateEntry == null) {
 			return;

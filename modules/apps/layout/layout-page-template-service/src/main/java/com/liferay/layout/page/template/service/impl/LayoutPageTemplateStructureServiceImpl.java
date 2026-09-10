@@ -65,15 +65,13 @@ public class LayoutPageTemplateStructureServiceImpl
 			return;
 		}
 
-		long livePlid = plid;
-
 		if (layout.isDraftLayout()) {
-			livePlid = layout.getClassPK();
+			plid = layout.getClassPK();
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.
-				fetchLayoutPageTemplateEntryByPlid(livePlid);
+				fetchLayoutPageTemplateEntryByPlid(plid);
 
 		if (layoutPageTemplateEntry == null) {
 			return;

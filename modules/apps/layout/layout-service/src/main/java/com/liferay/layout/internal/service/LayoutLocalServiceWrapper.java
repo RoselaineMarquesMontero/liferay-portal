@@ -278,15 +278,15 @@ public class LayoutLocalServiceWrapper
 	}
 
 	private void _checkNotLocked(Layout layout) throws Exception {
-		long livePlid = layout.getPlid();
+		long plid = layout.getPlid();
 
 		if (layout.isDraftLayout()) {
-			livePlid = layout.getClassPK();
+			plid = layout.getClassPK();
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.
-				fetchLayoutPageTemplateEntryByPlid(livePlid);
+				fetchLayoutPageTemplateEntryByPlid(plid);
 
 		if (layoutPageTemplateEntry == null) {
 			return;
