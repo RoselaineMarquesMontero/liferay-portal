@@ -11,6 +11,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.portlet.MockLiferayResourceRequest;
@@ -141,10 +142,21 @@ public class ImportMVCResourceCommandTest {
 	}
 
 	private void _setUpImportMVCResourceCommand() {
+		Mockito.when(
+			_layoutPageTemplatePortletResourcePermission.contains(
+				Mockito.any(), Mockito.anyLong(), Mockito.anyString())
+		).thenReturn(
+			true
+		);
+
 		ReflectionTestUtil.setFieldValue(
 			_importMVCResourceCommand, "_jsonFactory", new JSONFactoryImpl());
 		ReflectionTestUtil.setFieldValue(
 			_importMVCResourceCommand, "_language", _language);
+		ReflectionTestUtil.setFieldValue(
+			_importMVCResourceCommand,
+			"_layoutPageTemplatePortletResourcePermission",
+			_layoutPageTemplatePortletResourcePermission);
 		ReflectionTestUtil.setFieldValue(
 			_importMVCResourceCommand, "_layoutsImporter", _layoutsImporter);
 		ReflectionTestUtil.setFieldValue(
@@ -243,6 +255,9 @@ public class ImportMVCResourceCommandTest {
 		_jsonPortletResponseUtilMockedStatic = Mockito.mockStatic(
 			JSONPortletResponseUtil.class);
 	private final Language _language = Mockito.mock(Language.class);
+	private final PortletResourcePermission
+		_layoutPageTemplatePortletResourcePermission = Mockito.mock(
+			PortletResourcePermission.class);
 	private final LayoutsImporter _layoutsImporter = Mockito.mock(
 		LayoutsImporter.class);
 	private final Portal _portal = Mockito.mock(Portal.class);
