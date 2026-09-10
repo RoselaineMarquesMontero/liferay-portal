@@ -1073,18 +1073,7 @@ public class PageTemplatesImporterTest {
 	}
 
 	@Test
-	public void testImportLayoutPageTemplateLocksEntryWhenLocked()
-		throws Exception {
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_importLockedLayoutPageTemplateEntry(
-				LayoutsImportStrategy.DO_NOT_OVERWRITE, true);
-
-		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
-	}
-
-	@Test
-	public void testImportLayoutPageTemplateRejectsOverwriteWhenLocked()
+	public void testImportLayoutPageTemplateIgnoresOverwriteWhenLocked()
 		throws Exception {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
@@ -1117,7 +1106,7 @@ public class PageTemplatesImporterTest {
 			layoutsImporterResultEntries.get(0);
 
 		Assert.assertEquals(
-			LayoutsImporterResultEntry.Status.INVALID,
+			LayoutsImporterResultEntry.Status.IGNORED,
 			layoutsImporterResultEntry.getStatus());
 
 		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
@@ -1125,6 +1114,17 @@ public class PageTemplatesImporterTest {
 				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
 
 		Assert.assertTrue(persistedLayoutPageTemplateEntry.isLocked());
+	}
+
+	@Test
+	public void testImportLayoutPageTemplateLocksEntryWhenLocked()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLockedLayoutPageTemplateEntry(
+				LayoutsImportStrategy.DO_NOT_OVERWRITE, true);
+
+		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
 	}
 
 	@Test
