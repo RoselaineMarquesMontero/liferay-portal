@@ -1589,7 +1589,7 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 			LayoutsImportStrategy layoutsImportStrategy, String name,
 			PageDefinition pageDefinition, boolean preserveItemIds,
 			int layoutPageTemplateEntryType, long userId, Thumbnail thumbnail,
-			String zipPath)
+			String zipPath, boolean locked)
 		throws Exception {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
@@ -1610,12 +1610,14 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 			}
 
 			boolean added = false;
+			boolean newLayoutPageTemplateEntry = false;
 
 			if (layoutPageTemplateEntry == null) {
 				layoutPageTemplateEntry = _addLayoutPageTemplateEntry(
 					groupId, layoutPageTemplateCollectionId, classNameId,
 					classTypeKey, name, layoutPageTemplateEntryType);
 				added = true;
+				newLayoutPageTemplateEntry = true;
 			}
 			else if (Objects.equals(
 						LayoutsImportStrategy.KEEP_BOTH,
@@ -1630,10 +1632,12 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 							layoutPageTemplateEntryType),
 					layoutPageTemplateEntryType);
 				added = true;
+				newLayoutPageTemplateEntry = true;
 			}
 			else if (Objects.equals(
 						LayoutsImportStrategy.OVERWRITE,
-						layoutsImportStrategy)) {
+						layoutsImportStrategy) &&
+					 !layoutPageTemplateEntry.isLocked()) {
 
 				layoutPageTemplateEntry =
 					_layoutPageTemplateEntryService.
@@ -1664,12 +1668,37 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 								getLayoutPageTemplateEntryId(),
 							previewFileEntryId);
 
+				if (locked && newLayoutPageTemplateEntry &&
+					((layoutPageTemplateEntryType ==
+						LayoutPageTemplateEntryTypeConstants.BASIC) ||
+					 (layoutPageTemplateEntryType ==
+						 LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE))) {
+
+					layoutPageTemplateEntry =
+						_layoutPageTemplateEntryLocalService.updateLock(
+							layoutPageTemplateEntry.
+								getLayoutPageTemplateEntryId(),
+							locked);
+				}
+
 				layoutsImporterResultEntries.add(
 					new LayoutsImporterResultEntry(
 						name, LayoutsImporterResultEntry.Status.IMPORTED,
 						warningMessages.toArray(new String[0])));
 			}
 			else {
+				String key =
+					"x-was-ignored-because-a-x-with-the-same-key-already-" +
+						"exists";
+
+				if (Objects.equals(
+						LayoutsImportStrategy.OVERWRITE,
+						layoutsImportStrategy) &&
+					layoutPageTemplateEntry.isLocked()) {
+
+					key = "x-was-ignored-because-a-x-is-locked";
+				}
+
 				layoutsImporterResultEntries.add(
 					new LayoutsImporterResultEntry(
 						name, LayoutsImporterResultEntry.Status.IGNORED,
@@ -1678,8 +1707,7 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 								zipPath,
 								_toTypeName(layoutPageTemplateEntryType)
 							},
-							"x-was-ignored-because-a-x-with-the-same-key-" +
-								"already-exists")));
+							key)));
 			}
 		}
 		catch (PortalException portalException) {
@@ -2625,7 +2653,8 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 				pageTemplate.getName(), _pageTemplateEntry.getPageDefinition(),
 				_preserveItemIds, LayoutPageTemplateEntryTypeConstants.BASIC,
 				_userId, _pageTemplateEntry.getThumbnail(),
-				_pageTemplateEntry.getZipPath());
+				_pageTemplateEntry.getZipPath(),
+				GetterUtil.getBoolean(pageTemplate.getLocked()));
 
 			return null;
 		}
@@ -2672,7 +2701,8 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 					_displayPageTemplate.getName(), _pageDefinition,
 					_preserveItemIds,
 					LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, _userId,
-					_thumbnail, _zipPath);
+					_thumbnail, _zipPath,
+					GetterUtil.getBoolean(_displayPageTemplate.getLocked()));
 
 			boolean defaultTemplate = GetterUtil.getBoolean(
 				_displayPageTemplate.getDefaultTemplate());
@@ -2773,7 +2803,7 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 				_layoutsImporterResultEntries, _layoutsImportStrategy, _name,
 				_pageDefinition, _preserveItemIds,
 				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT, _userId,
-				_thumbnail, _zipPath);
+				_thumbnail, _zipPath, false);
 
 			return null;
 		}
