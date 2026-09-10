@@ -16,7 +16,10 @@ import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
@@ -24,6 +27,7 @@ import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.servlet.MultiSessionMessages;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -116,6 +120,23 @@ public class PublishLayoutPageTemplateEntryMVCActionCommand
 	private LayoutPageTemplateEntry _publishLayoutPageTemplateEntry(
 			Layout draftLayout, Layout layout, long userId)
 		throws Exception {
+
+		LayoutPageTemplateEntry existingLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
+
+		if ((existingLayoutPageTemplateEntry != null) &&
+			!GetterUtil.getBoolean(
+				ModelResourcePermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					existingLayoutPageTemplateEntry.getGroupId(),
+					LayoutPageTemplateEntry.class.getName(),
+					existingLayoutPageTemplateEntry.
+						getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE))) {
+
+			throw new PrincipalException();
+		}
 
 		Group group = _groupLocalService.getGroup(layout.getGroupId());
 

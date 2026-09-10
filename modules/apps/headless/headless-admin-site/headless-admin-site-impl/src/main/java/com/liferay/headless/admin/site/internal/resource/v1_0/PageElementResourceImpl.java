@@ -14,7 +14,9 @@ import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutStructu
 import com.liferay.headless.admin.site.resource.v1_0.PageElementResource;
 import com.liferay.headless.common.spi.util.GroupUtil;
 import com.liferay.info.item.InfoItemServiceRegistry;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.util.LayoutServiceContextHelper;
 import com.liferay.layout.util.constants.LayoutDataItemTypeConstants;
@@ -25,10 +27,13 @@ import com.liferay.layout.util.structure.LayoutStructureItemUtil;
 import com.liferay.layout.util.structure.exception.NoSuchLayoutStructureItemException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
@@ -86,6 +91,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		_segmentsExperienceResourcePermission.check(
 			PermissionThreadLocal.getPermissionChecker(), segmentsExperience,
 			ActionKeys.UPDATE);
+
+		_checkNotLocked(layout);
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
@@ -385,6 +392,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 			PageElement pageElement, long segmentsExperienceId)
 		throws Exception {
 
+		_checkNotLocked(layout);
+
 		try (AutoCloseable autoCloseable =
 				_layoutServiceContextHelper.getServiceContextAutoCloseable(
 					layout, contextUser)) {
@@ -410,6 +419,33 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 					layout.getPlid(), layoutStructure, layoutStructureItem,
 					groupId),
 				layoutStructureItem);
+		}
+	}
+
+	private void _checkNotLocked(Layout layout) throws Exception {
+		long livePlid = layout.getPlid();
+
+		if (layout.isDraftLayout()) {
+			livePlid = layout.getClassPK();
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(livePlid);
+
+		if (layoutPageTemplateEntry == null) {
+			return;
+		}
+
+		if (!GetterUtil.getBoolean(
+				ModelResourcePermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					layoutPageTemplateEntry.getGroupId(),
+					LayoutPageTemplateEntry.class.getName(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE))) {
+
+			throw new PrincipalException();
 		}
 	}
 
@@ -486,6 +522,10 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private LayoutPageTemplateStructureLocalService
