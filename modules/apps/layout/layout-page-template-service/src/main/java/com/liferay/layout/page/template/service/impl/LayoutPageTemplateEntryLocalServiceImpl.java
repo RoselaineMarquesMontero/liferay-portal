@@ -742,6 +742,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			return layoutPageTemplateEntry;
 		}
 
+		_checkNotLocked(layoutPageTemplateEntry);
+
 		_validate(
 			layoutPageTemplateEntry.getGroupId(),
 			targetLayoutPageTemplateCollectionId,
@@ -764,6 +766,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		if (layoutPageTemplateEntry == null) {
 			return null;
 		}
+
+		_checkNotLocked(layoutPageTemplateEntry);
 
 		if (layoutPageTemplateEntry.getStatus() !=
 				WorkflowConstants.STATUS_APPROVED) {
@@ -805,6 +809,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				layoutPageTemplateEntryId);
 
+		_checkNotLocked(layoutPageTemplateEntry);
+
 		long previousPreviewFileEntryId =
 			layoutPageTemplateEntry.getPreviewFileEntryId();
 
@@ -829,6 +835,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				layoutPageTemplateEntryId);
+
+		_checkNotLocked(layoutPageTemplateEntry);
 
 		Layout draftLayout = _layoutLocalService.fetchDraftLayout(
 			layoutPageTemplateEntry.getPlid());
@@ -885,6 +893,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				layoutPageTemplateEntryId);
 
+		_checkNotLocked(layoutPageTemplateEntry);
+
 		_validateCMSFreeTier(layoutPageTemplateEntry.getGroupId(), status);
 
 		if (!Objects.equals(layoutPageTemplateEntry.getName(), name)) {
@@ -922,6 +932,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		if (Objects.equals(layoutPageTemplateEntry.getName(), name)) {
 			return layoutPageTemplateEntry;
 		}
+
+		_checkNotLocked(layoutPageTemplateEntry);
 
 		_validate(
 			layoutPageTemplateEntry.getGroupId(),
@@ -1008,6 +1020,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				layoutPageTemplateEntryId);
+
+		_checkNotLocked(layoutPageTemplateEntry);
 
 		if (layoutPageTemplateEntry.isDefaultTemplate() &&
 			(status != WorkflowConstants.STATUS_APPROVED)) {
@@ -1136,6 +1150,18 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE, 0, false,
 			layoutPrototype.getLayoutPrototypeId(), layout.getPlid(), 0, status,
 			new ServiceContext());
+	}
+
+	private void _checkNotLocked(
+			LayoutPageTemplateEntry layoutPageTemplateEntry)
+		throws PortalException {
+
+		if (layoutPageTemplateEntry.isLocked()) {
+			throw new PortalException(
+				"Layout page template entry " +
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId() +
+						" is locked");
+		}
 	}
 
 	private FileEntry _copyPreviewFileEntry(
