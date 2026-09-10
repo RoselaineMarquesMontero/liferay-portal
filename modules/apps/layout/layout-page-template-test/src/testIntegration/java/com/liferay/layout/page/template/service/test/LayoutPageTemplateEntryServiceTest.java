@@ -1314,47 +1314,10 @@ public class LayoutPageTemplateEntryServiceTest {
 			"leopard", persistedLayoutPageTemplateEntry.getName());
 	}
 
-	@Test
-	public void testUpdateLayoutPageTemplateEntryStatus()
-		throws PortalException {
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
-				_layoutPageTemplateCollection.
-					getLayoutPageTemplateCollectionId());
-
-		layoutPageTemplateEntry = _layoutPageTemplateEntryService.updateStatus(
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
-			WorkflowConstants.STATUS_PENDING);
-
-		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
-			_layoutPageTemplateEntryPersistence.fetchByPrimaryKey(
-				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
-
-		Assert.assertEquals(
-			WorkflowConstants.STATUS_PENDING,
-			persistedLayoutPageTemplateEntry.getStatus());
-	}
-
 	@Test(expected = PrincipalException.class)
-	public void testUpdateLayoutPageTemplateEntryStatusWhenLocked()
+	public void testUpdateLayoutPageTemplateEntryNameWhenLocked()
 		throws Exception {
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
-				_layoutPageTemplateCollection.
-					getLayoutPageTemplateCollectionId());
-
-		_layoutPageTemplateEntryLocalService.updateLock(
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
-
-		_layoutPageTemplateEntryService.updateStatus(
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
-			WorkflowConstants.STATUS_PENDING);
-	}
-
-	@Test(expected = PrincipalException.class)
-	public void testUpdateLayoutPageTemplateEntryWhenLocked() throws Exception {
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
 				_layoutPageTemplateCollection.
@@ -1369,7 +1332,7 @@ public class LayoutPageTemplateEntryServiceTest {
 	}
 
 	@Test
-	public void testUpdateLayoutPageTemplateEntryWhenLockedThroughLocalService()
+	public void testUpdateLayoutPageTemplateEntryNameWhenLockedThroughLocalService()
 		throws Exception {
 
 		// The local service intentionally bypasses the lock check: locking
@@ -1397,6 +1360,41 @@ public class LayoutPageTemplateEntryServiceTest {
 
 		Assert.assertEquals(
 			"leopard", persistedLayoutPageTemplateEntry.getName());
+	}
+
+	@Test
+	public void testUpdateStatus() throws PortalException {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId());
+
+		layoutPageTemplateEntry = _layoutPageTemplateEntryService.updateStatus(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			WorkflowConstants.STATUS_PENDING);
+
+		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryPersistence.fetchByPrimaryKey(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_PENDING,
+			persistedLayoutPageTemplateEntry.getStatus());
+	}
+
+	@Test(expected = PrincipalException.class)
+	public void testUpdateStatusWhenLocked() throws Exception {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId());
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		_layoutPageTemplateEntryService.updateStatus(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			WorkflowConstants.STATUS_PENDING);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
