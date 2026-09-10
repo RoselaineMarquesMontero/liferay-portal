@@ -9,6 +9,8 @@ import com.liferay.layout.importer.LayoutsImportStrategy;
 import com.liferay.layout.importer.LayoutsImporter;
 import com.liferay.layout.importer.LayoutsImporterResultEntry;
 import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateActionKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -20,6 +22,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -61,6 +64,23 @@ public class ImportMVCResourceCommand extends BaseMVCResourceCommand {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		if (!_layoutPageTemplatePortletResourcePermission.contains(
+				themeDisplay.getPermissionChecker(),
+				themeDisplay.getScopeGroupId(),
+				LayoutPageTemplateActionKeys.ADD_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+
+			jsonObject.put(
+				"error",
+				_language.get(
+					themeDisplay.getLocale(),
+					"you-do-not-have-the-required-permissions"));
+
+			JSONPortletResponseUtil.writeJSON(
+				resourceRequest, resourceResponse, jsonObject);
+
+			return;
+		}
 
 		long layoutPageTemplateCollectionId = ParamUtil.getLong(
 			resourceRequest, "layoutPageTemplateCollectionId");
@@ -208,6 +228,12 @@ public class ImportMVCResourceCommand extends BaseMVCResourceCommand {
 
 	@Reference
 	private Language _language;
+
+	@Reference(
+		target = "(resource.name=" + LayoutPageTemplateConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission
+		_layoutPageTemplatePortletResourcePermission;
 
 	@Reference
 	private LayoutsImporter _layoutsImporter;

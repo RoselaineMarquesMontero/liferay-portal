@@ -9,6 +9,8 @@ import com.liferay.layout.importer.LayoutsImportStrategy;
 import com.liferay.layout.importer.LayoutsImporter;
 import com.liferay.layout.importer.LayoutsImporterResultEntry;
 import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateActionKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.layout.page.template.util.CheckUnlockedLayoutThreadLocal;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.language.Language;
@@ -16,6 +18,8 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -86,6 +90,15 @@ public class ImportMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		try {
+			if (!_layoutPageTemplatePortletResourcePermission.contains(
+					themeDisplay.getPermissionChecker(),
+					themeDisplay.getScopeGroupId(),
+					LayoutPageTemplateActionKeys.
+						ADD_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+
+				throw new PrincipalException();
+			}
+
 			List<LayoutsImporterResultEntry> layoutsImporterResultEntries =
 				Collections.emptyList();
 
@@ -123,6 +136,12 @@ public class ImportMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Language _language;
+
+	@Reference(
+		target = "(resource.name=" + LayoutPageTemplateConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission
+		_layoutPageTemplatePortletResourcePermission;
 
 	@Reference
 	private LayoutsImporter _layoutsImporter;

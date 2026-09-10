@@ -5,6 +5,8 @@
 
 package com.liferay.fragment.web.internal.struts;
 
+import com.liferay.fragment.constants.FragmentActionKeys;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.importer.FragmentsImportStrategy;
 import com.liferay.fragment.importer.FragmentsImporter;
 import com.liferay.fragment.importer.FragmentsImporterResultEntry;
@@ -16,6 +18,7 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -72,6 +75,22 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)httpServletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
+
+			if (!_fragmentPortletResourcePermission.contains(
+					themeDisplay.getPermissionChecker(), groupId,
+					FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES)) {
+
+				jsonObject.put(
+					"error",
+					_language.get(
+						httpServletRequest,
+						"you-do-not-have-the-required-permissions"));
+
+				ServletResponseUtil.write(
+					httpServletResponse, jsonObject.toString());
+
+				return null;
+			}
 
 			List<FragmentsImporterResultEntry> fragmentsImporterResultEntries =
 				_fragmentsImporter.importFragmentEntries(
@@ -140,6 +159,11 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 
 		return null;
 	}
+
+	@Reference(
+		target = "(resource.name=" + FragmentConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission _fragmentPortletResourcePermission;
 
 	@Reference
 	private FragmentsImporter _fragmentsImporter;
