@@ -5,7 +5,9 @@
 
 package com.liferay.layout.page.template.service.impl;
 
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.base.LayoutPageTemplateStructureServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -13,6 +15,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermission;
 import com.liferay.portal.kernel.util.GetterUtil;
 
@@ -44,6 +47,8 @@ public class LayoutPageTemplateStructureServiceImpl
 			_layoutPermission.containsLayoutRestrictedUpdatePermission(
 				getPermissionChecker(), plid)) {
 
+			_checkNotLocked(plid);
+
 			return layoutPageTemplateStructureLocalService.
 				updateLayoutPageTemplateStructureData(
 					getUserId(), groupId, plid, segmentsExperienceId, data);
@@ -52,6 +57,46 @@ public class LayoutPageTemplateStructureServiceImpl
 		throw new PrincipalException.MustHavePermission(
 			getUserId(), Layout.class.getName(), plid, ActionKeys.UPDATE);
 	}
+
+	private void _checkNotLocked(long plid) throws PortalException {
+		Layout layout = _layoutLocalService.fetchLayout(plid);
+
+		if (layout == null) {
+			return;
+		}
+
+		long livePlid = plid;
+
+		if (layout.isDraftLayout()) {
+			livePlid = layout.getClassPK();
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(livePlid);
+
+		if (layoutPageTemplateEntry == null) {
+			return;
+		}
+
+		if (!GetterUtil.getBoolean(
+				ModelResourcePermissionUtil.contains(
+					getPermissionChecker(),
+					layoutPageTemplateEntry.getGroupId(),
+					LayoutPageTemplateEntry.class.getName(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE))) {
+
+			throw new PrincipalException();
+		}
+	}
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private LayoutPermission _layoutPermission;
