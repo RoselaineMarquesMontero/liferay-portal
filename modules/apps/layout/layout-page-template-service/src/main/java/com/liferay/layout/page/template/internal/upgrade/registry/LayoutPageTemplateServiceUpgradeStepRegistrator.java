@@ -273,6 +273,11 @@ public class LayoutPageTemplateServiceUpgradeStepRegistrator
 				LayoutPageTemplateStructureRelUpgradeProcess(
 					_layoutLocalService, _segmentsExperienceLocalService,
 					_userLocalService));
+
+		registry.register(
+			"6.2.0", "6.3.0",
+			UpgradeProcessFactory.addColumns(
+				"LayoutPageTemplateEntry", "locked BOOLEAN"));
 	}
 
 	@Reference
