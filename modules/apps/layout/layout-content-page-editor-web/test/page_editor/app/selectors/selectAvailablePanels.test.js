@@ -39,6 +39,15 @@ const EXPECTED_SIDEBAR_PANELS = [
 	},
 ];
 
+const EXPECTED_LOCKED_PAGE_TEMPLATE_SIDEBAR_PANELS = [
+	{
+		sidebarPanelId: 'comments',
+	},
+	{
+		sidebarPanelId: 'page_content',
+	},
+];
+
 describe('selectAvailablePanels', () => {
 	it('reduce the number of panels in non-desktop viewport', () => {
 		const panels = selectAvailablePanels(SIDEBAR_PANELS)({
@@ -56,6 +65,15 @@ describe('selectAvailablePanels', () => {
 		});
 
 		expect(panels).toEqual(EXPECTED_SIDEBAR_PANELS);
+	});
+
+	it('reduces the number of panels to only comments and page_content when the page template is locked', () => {
+		const panels = selectAvailablePanels(SIDEBAR_PANELS)({
+			permissions: {LOCKED_PAGE_TEMPLATE: true},
+			selectedViewportSize: VIEWPORT_SIZES.desktop,
+		});
+
+		expect(panels).toEqual(EXPECTED_LOCKED_PAGE_TEMPLATE_SIDEBAR_PANELS);
 	});
 
 	it('reduce the number of panels when user has limited permission', () => {

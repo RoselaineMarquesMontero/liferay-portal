@@ -604,6 +604,26 @@ public class PageTemplatesImporterTest {
 	}
 
 	@Test
+	public void testImportLayoutPageTemplateDoesNotLockEntryOnOverwriteWhenPreviouslyUnlocked()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLockedLayoutPageTemplateEntry(
+				LayoutsImportStrategy.DO_NOT_OVERWRITE, false);
+
+		Assert.assertFalse(layoutPageTemplateEntry.isLocked());
+
+		_importLockedLayoutPageTemplateEntry(
+			LayoutsImportStrategy.OVERWRITE, true);
+
+		layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+
+		Assert.assertFalse(layoutPageTemplateEntry.isLocked());
+	}
+
+	@Test
 	public void testImportLayoutPageTemplateEntryDropZoneFragment()
 		throws Exception {
 
@@ -1050,6 +1070,17 @@ public class PageTemplatesImporterTest {
 
 		_validateTextFragmentEntryLinkEditableValues(
 			fragmentEntryLink.getEditableValuesJSONObject());
+	}
+
+	@Test
+	public void testImportLayoutPageTemplateLocksEntryWhenLocked()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLockedLayoutPageTemplateEntry(
+				LayoutsImportStrategy.DO_NOT_OVERWRITE, true);
+
+		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
 	}
 
 	@Test
@@ -1503,6 +1534,30 @@ public class PageTemplatesImporterTest {
 		String childItemId = childrenItemIds.get(0);
 
 		return layoutStructure.getLayoutStructureItem(childItemId);
+	}
+
+	private LayoutPageTemplateEntry _importLockedLayoutPageTemplateEntry(
+			LayoutsImportStrategy layoutsImportStrategy, boolean locked)
+		throws Exception {
+
+		File file = _generateZipFile(
+			locked ? "locked" : "unlocked", new HashMap<>());
+
+		List<LayoutsImporterResultEntry> layoutsImporterResultEntries = null;
+
+		ServiceContextThreadLocal.pushServiceContext(
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		try {
+			layoutsImporterResultEntries = _layoutsImporter.importFile(
+				_user.getUserId(), _group.getGroupId(), 0, file,
+				layoutsImportStrategy, true);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+
+		return _getLayoutPageTemplateEntry(layoutsImporterResultEntries, 0);
 	}
 
 	private void _populateZipWriter(
