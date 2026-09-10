@@ -1084,6 +1084,50 @@ public class PageTemplatesImporterTest {
 	}
 
 	@Test
+	public void testImportLayoutPageTemplateRejectsOverwriteWhenLocked()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLockedLayoutPageTemplateEntry(
+				LayoutsImportStrategy.DO_NOT_OVERWRITE, true);
+
+		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
+
+		File file = _generateZipFile("locked", new HashMap<>());
+
+		List<LayoutsImporterResultEntry> layoutsImporterResultEntries = null;
+
+		ServiceContextThreadLocal.pushServiceContext(
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		try {
+			layoutsImporterResultEntries = _layoutsImporter.importFile(
+				_user.getUserId(), _group.getGroupId(), 0, file,
+				LayoutsImportStrategy.OVERWRITE, true);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+
+		Assert.assertEquals(
+			layoutsImporterResultEntries.toString(), 1,
+			layoutsImporterResultEntries.size());
+
+		LayoutsImporterResultEntry layoutsImporterResultEntry =
+			layoutsImporterResultEntries.get(0);
+
+		Assert.assertEquals(
+			LayoutsImporterResultEntry.Status.INVALID,
+			layoutsImporterResultEntry.getStatus());
+
+		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+
+		Assert.assertTrue(persistedLayoutPageTemplateEntry.isLocked());
+	}
+
+	@Test
 	public void testImportLayoutPageTemplates() throws Exception {
 		List<LayoutsImporterResultEntry> layoutsImporterResultEntries =
 			_getLayoutsImporterResultEntries(

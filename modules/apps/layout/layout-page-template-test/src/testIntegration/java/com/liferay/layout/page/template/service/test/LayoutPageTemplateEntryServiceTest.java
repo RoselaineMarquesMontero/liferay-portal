@@ -1331,16 +1331,9 @@ public class LayoutPageTemplateEntryServiceTest {
 			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), "leopard");
 	}
 
-	@Test
+	@Test(expected = PortalException.class)
 	public void testUpdateLayoutPageTemplateEntryNameWhenLockedThroughLocalService()
 		throws Exception {
-
-		// The local service intentionally bypasses the lock check: locking
-		// is enforced by LayoutPageTemplateEntryModelResourcePermissionWrapper
-		// at the permission layer, which only gates the remote service. A
-		// system operation that calls the local service directly (e.g. the
-		// importer re-importing over an existing entry) must still be able
-		// to update a locked entry.
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
@@ -1353,13 +1346,6 @@ public class LayoutPageTemplateEntryServiceTest {
 
 		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
 			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), "leopard");
-
-		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
-			_layoutPageTemplateEntryPersistence.fetchByPrimaryKey(
-				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
-
-		Assert.assertEquals(
-			"leopard", persistedLayoutPageTemplateEntry.getName());
 	}
 
 	@Test
