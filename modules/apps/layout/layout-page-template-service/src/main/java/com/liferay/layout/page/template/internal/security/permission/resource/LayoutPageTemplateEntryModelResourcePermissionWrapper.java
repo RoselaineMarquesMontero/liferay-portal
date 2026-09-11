@@ -8,6 +8,7 @@ package com.liferay.layout.page.template.internal.security.permission.resource;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.BaseModelResourcePermissionWrapper;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
@@ -35,8 +36,17 @@ public class LayoutPageTemplateEntryModelResourcePermissionWrapper
 			LayoutPageTemplateEntry::getLayoutPageTemplateEntryId,
 			_layoutPageTemplateEntryLocalService::getLayoutPageTemplateEntry,
 			_portletResourcePermission,
-			(modelResourcePermission, consumer) -> {
-			});
+			(modelResourcePermission, consumer) -> consumer.accept(
+				(permissionChecker, name, layoutPageTemplateEntry, actionId) -> {
+					if (layoutPageTemplateEntry.isLocked() &&
+						(actionId.equals(ActionKeys.DELETE) ||
+						 actionId.equals(ActionKeys.UPDATE))) {
+
+						return false;
+					}
+
+					return null;
+				}));
 	}
 
 	@Reference

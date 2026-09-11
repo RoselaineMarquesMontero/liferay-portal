@@ -663,6 +663,20 @@ public class LayoutPageTemplateEntryServiceTest {
 		}
 	}
 
+	@Test(expected = PrincipalException.class)
+	public void testDeleteLayoutPageTemplateEntryWhenLocked() throws Exception {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId());
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		_layoutPageTemplateEntryService.deleteLayoutPageTemplateEntry(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+	}
+
 	@Test
 	public void testDeleteLayoutPageTemplateEntryWithLayoutPrototype()
 		throws Exception {
@@ -1213,6 +1227,32 @@ public class LayoutPageTemplateEntryServiceTest {
 		}
 	}
 
+	@Test(expected = PrincipalException.class)
+	public void testMoveLayoutPageTemplateEntryWhenLocked() throws Exception {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId());
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		LayoutPageTemplateCollection targetLayoutPageTemplateCollection =
+			_layoutPageTemplateCollectionLocalService.
+				addLayoutPageTemplateCollection(
+					null, TestPropsValues.getUserId(), _group.getGroupId(),
+					LayoutPageTemplateConstants.
+						PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+					null, RandomTestUtil.randomString(), StringPool.BLANK,
+					LayoutPageTemplateCollectionTypeConstants.BASIC,
+					_serviceContext);
+
+		_layoutPageTemplateEntryService.moveLayoutPageTemplateEntry(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			targetLayoutPageTemplateCollection.
+				getLayoutPageTemplateCollectionId());
+	}
+
 	@Test
 	public void testUpdateLayoutPageTemplateEntryDefaultTemplate()
 		throws PortalException {
@@ -1274,10 +1314,42 @@ public class LayoutPageTemplateEntryServiceTest {
 			"leopard", persistedLayoutPageTemplateEntry.getName());
 	}
 
-	@Test
-	public void testUpdateLayoutPageTemplateEntryStatus()
-		throws PortalException {
+	@Test(expected = PrincipalException.class)
+	public void testUpdateLayoutPageTemplateEntryNameWhenLocked()
+		throws Exception {
 
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId(),
+				"tiger");
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		_layoutPageTemplateEntryService.updateLayoutPageTemplateEntry(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), "leopard");
+	}
+
+	@Test(expected = PortalException.class)
+	public void testUpdateLayoutPageTemplateEntryNameWhenLockedThroughLocalService()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId(),
+				"tiger");
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), "leopard");
+	}
+
+	@Test
+	public void testUpdateStatus() throws PortalException {
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
 				_layoutPageTemplateCollection.
@@ -1294,6 +1366,21 @@ public class LayoutPageTemplateEntryServiceTest {
 		Assert.assertEquals(
 			WorkflowConstants.STATUS_PENDING,
 			persistedLayoutPageTemplateEntry.getStatus());
+	}
+
+	@Test(expected = PrincipalException.class)
+	public void testUpdateStatusWhenLocked() throws Exception {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId());
+
+		_layoutPageTemplateEntryLocalService.updateLock(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), true);
+
+		_layoutPageTemplateEntryService.updateStatus(
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			WorkflowConstants.STATUS_PENDING);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

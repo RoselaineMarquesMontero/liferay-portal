@@ -9,11 +9,15 @@ import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.importer.LayoutsImportStrategy;
 import com.liferay.layout.importer.LayoutsImporter;
 import com.liferay.layout.importer.LayoutsImporterResultEntry;
+import com.liferay.layout.utility.page.constants.LayoutUtilityPageActionKeys;
+import com.liferay.layout.utility.page.constants.LayoutUtilityPageConstants;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -81,6 +85,15 @@ public class ImportLayoutUtilityPageEntriesMVCActionCommand
 		}
 
 		try {
+			if (!_layoutUtilityPagePortletResourcePermission.contains(
+					themeDisplay.getPermissionChecker(),
+					themeDisplay.getScopeGroupId(),
+					LayoutUtilityPageActionKeys.
+						ADD_LAYOUT_UTILITY_PAGE_ENTRY)) {
+
+				throw new PrincipalException();
+			}
+
 			List<LayoutsImporterResultEntry>
 				layoutUtilityPageImporterResultEntries =
 					_layoutsImporter.importFile(
@@ -115,6 +128,12 @@ public class ImportLayoutUtilityPageEntriesMVCActionCommand
 
 	@Reference
 	private LayoutsImporter _layoutsImporter;
+
+	@Reference(
+		target = "(resource.name=" + LayoutUtilityPageConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission
+		_layoutUtilityPagePortletResourcePermission;
 
 	@Reference
 	private Portal _portal;

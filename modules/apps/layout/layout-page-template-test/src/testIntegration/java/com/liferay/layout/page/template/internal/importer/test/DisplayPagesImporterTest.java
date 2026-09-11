@@ -482,6 +482,65 @@ public class DisplayPagesImporterTest {
 	}
 
 	@Test
+	public void testImportDisplayPageIgnoresOverwriteWhenLockedAndDefault()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLayoutPageTemplateEntry(
+				"display-page-template-locked-default");
+
+		Assert.assertTrue(layoutPageTemplateEntry.isDefaultTemplate());
+		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
+
+		File file = _getFile(
+			_BASE_PATH + "display-page-template-locked-default");
+
+		List<LayoutsImporterResultEntry> layoutsImporterResultEntries = null;
+
+		ServiceContextThreadLocal.pushServiceContext(
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		try {
+			layoutsImporterResultEntries = _layoutsImporter.importFile(
+				TestPropsValues.getUserId(), _group.getGroupId(), 0, file,
+				LayoutsImportStrategy.OVERWRITE, true);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+
+		Assert.assertEquals(
+			layoutsImporterResultEntries.toString(), 1,
+			layoutsImporterResultEntries.size());
+
+		LayoutsImporterResultEntry layoutsImporterResultEntry =
+			layoutsImporterResultEntries.get(0);
+
+		Assert.assertEquals(
+			LayoutsImporterResultEntry.Status.IGNORED,
+			layoutsImporterResultEntry.getStatus());
+
+		LayoutPageTemplateEntry persistedLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+
+		Assert.assertTrue(persistedLayoutPageTemplateEntry.isDefaultTemplate());
+		Assert.assertTrue(persistedLayoutPageTemplateEntry.isLocked());
+	}
+
+	@Test
+	public void testImportDisplayPageIsDefaultTemplateWhenLocked()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_importLayoutPageTemplateEntry(
+				"display-page-template-locked-default");
+
+		Assert.assertTrue(layoutPageTemplateEntry.isDefaultTemplate());
+		Assert.assertTrue(layoutPageTemplateEntry.isLocked());
+	}
+
+	@Test
 	public void testImportDisplayPages() throws Exception {
 		List<LayoutsImporterResultEntry> layoutsImporterResultEntries =
 			_getLayoutsImporterResultEntries("display-page-template-multiple");

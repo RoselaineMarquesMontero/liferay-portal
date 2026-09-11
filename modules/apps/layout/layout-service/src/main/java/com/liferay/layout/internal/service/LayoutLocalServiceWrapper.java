@@ -61,6 +61,10 @@ import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
@@ -206,6 +210,8 @@ public class LayoutLocalServiceWrapper
 			String data, Layout layout, long segmentsExperienceId)
 		throws Exception {
 
+		_checkNotLocked(layout);
+
 		boolean copyLayout = CopyLayoutThreadLocal.isCopyLayout();
 
 		ServiceContext currentServiceContext =
@@ -268,6 +274,33 @@ public class LayoutLocalServiceWrapper
 			if (pushedServiceContext) {
 				ServiceContextThreadLocal.popServiceContext();
 			}
+		}
+	}
+
+	private void _checkNotLocked(Layout layout) throws Exception {
+		long plid = layout.getPlid();
+
+		if (layout.isDraftLayout()) {
+			plid = layout.getClassPK();
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(plid);
+
+		if (layoutPageTemplateEntry == null) {
+			return;
+		}
+
+		if (!GetterUtil.getBoolean(
+				ModelResourcePermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					layoutPageTemplateEntry.getGroupId(),
+					LayoutPageTemplateEntry.class.getName(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE))) {
+
+			throw new PrincipalException();
 		}
 	}
 

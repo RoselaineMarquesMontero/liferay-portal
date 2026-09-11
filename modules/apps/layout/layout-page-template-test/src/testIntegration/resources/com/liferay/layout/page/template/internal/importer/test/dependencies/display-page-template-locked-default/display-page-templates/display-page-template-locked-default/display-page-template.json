@@ -1,0 +1,11 @@
+{
+	"contentSubtype": {
+		"subtypeId": 0
+	},
+	"contentType": {
+		"className": "com.liferay.portal.kernel.repository.model.FileEntry"
+	},
+	"defaultTemplate": true,
+	"locked": true,
+	"name": "Display Page Template Locked Default"
+}

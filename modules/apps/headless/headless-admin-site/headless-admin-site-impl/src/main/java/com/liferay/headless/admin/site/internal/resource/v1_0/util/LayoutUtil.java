@@ -61,6 +61,10 @@ import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
 import com.liferay.portal.kernel.service.LayoutTemplateLocalServiceUtil;
@@ -682,6 +686,33 @@ public class LayoutUtil {
 		}
 	}
 
+	private static void _checkNotLocked(Layout layout) throws Exception {
+		long plid = layout.getPlid();
+
+		if (layout.isDraftLayout()) {
+			plid = layout.getClassPK();
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateEntryLocalServiceUtil.
+				fetchLayoutPageTemplateEntryByPlid(plid);
+
+		if (layoutPageTemplateEntry == null) {
+			return;
+		}
+
+		if (!GetterUtil.getBoolean(
+				ModelResourcePermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					layoutPageTemplateEntry.getGroupId(),
+					LayoutPageTemplateEntry.class.getName(),
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					ActionKeys.UPDATE))) {
+
+			throw new PrincipalException();
+		}
+	}
+
 	private static byte[] _getIconImageByteArray(Settings settings)
 		throws Exception {
 
@@ -1235,6 +1266,8 @@ public class LayoutUtil {
 			InfoItemServiceRegistry infoItemServiceRegistry, Layout layout,
 			PageExperience[] pageExperiences, ServiceContext serviceContext)
 		throws Exception {
+
+		_checkNotLocked(layout);
 
 		PageExperienceUtil.validatePageExperiences(
 			SegmentsExperienceLocalServiceUtil.fetchDefaultSegmentsExperience(
